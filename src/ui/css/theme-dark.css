@@ -1,0 +1,54 @@
+/* Dark theme colors */
+
+:root {
+    /* Background colors */
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-tertiary: #333333;
+
+    /* Text colors */
+    --text-primary: #d4d4d4;
+    --text-secondary: #858585;
+    --text-tertiary: #6a6a6a;
+
+    /* Border colors */
+    --border-color: #3c3c3c;
+    --border-light: #2d2d2d;
+
+    /* Accent colors */
+    --accent-color: #0E639C;
+    --accent-hover: #1177BB;
+    --accent-light: #094771;
+
+    /* Status colors */
+    --success-color: #4EC9B0;
+    --warning-color: #CE9178;
+    --error-color: #F48771;
+    --info-color: #0E639C;
+
+    /* Code colors */
+    --code-bg: #252526;
+    --code-text: #D16D9E;
+
+    /* Shadow */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Override specific elements for dark theme */
+body[data-theme="dark"] {
+    color-scheme: dark;
+}
+
+body[data-theme="dark"] #preview .mermaid {
+    background: var(--bg-secondary);
+}
+
+body[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+}
+
+body[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+}

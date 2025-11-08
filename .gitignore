@@ -1,0 +1,157 @@
+# Documentation (planning files)
+Continuity/
+.claude/
+claude.md
+Progress/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+*.egg-info/
+
+# PyQt
+*.qm
+
+# Data
+data/app.db
+data/temp/*
+!data/temp/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build
+build/
+dist/
+*.spec
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ========================================
+# PRIVACY & PERSONAL DATA PROTECTION
+# ========================================
+
+# User Documents & Drafts
+*.md
+!README.md
+!IMPLEMENTATION_SUMMARY.md
+!PRIVACY_PROTECTION.md
+!PRIVACY_SUMMARY.md
+!LICENSE.md
+!CONTRIBUTING.md
+/documents/
+/drafts/
+/my_notes/
+/personal/
+
+# Database Files (contain user data)
+data/app.db
+data/app.db-*
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+data/settings.json
+data/user_*.json
+data/recent_files.json
+
+# User Snippets & Templates (may contain personal code)
+data/snippets/
+data/templates/custom/
+data/user_templates/
+
+# Logs (may contain file paths, personal info)
+*.log
+logs/
+data/logs/
+app.log
+error.log
+debug.log
+
+# Auto-save & Backup Files (user content)
+data/autosave/
+data/backup/
+*~
+*.bak
+*.backup
+*.tmp
+.~lock.*
+
+# Browser Cache & Session Data
+data/cache/
+data/cookies/
+data/sessions/
+data/localstorage/
+data/webstorage/
+
+# User Media (uploaded images, etc.)
+data/images/
+data/media/
+data/uploads/
+resources/user_uploads/
+
+# Export Output (user-generated documents)
+exports/
+output/
+*.export.pdf
+*.export.docx
+*.export.html
+
+# User Configuration (personal settings)
+config/user.json
+config/local.json
+.user.ini
+.local.ini
+user_config.yaml
+local_config.yaml
+
+# Credentials & API Keys
+.env
+.env.local
+.env.*.local
+credentials.json
+secrets.json
+api_keys.json
+.secret
+*.key
+*.pem
+*.cert
+
+# Recent Files List (contains file paths)
+data/recent/
+.recent_files
+recent_files.txt
+
+# User Search History
+data/search_history.json
+.search_history
+
+# Window Position & Size (may reveal screen setup)
+data/window_state.json
+.window_geometry
+
+# User Statistics (usage patterns)
+data/stats.json
+data/analytics.json
+data/usage.json
+
+# Temporary User Files
+temp_user_*/
+.temp_*
+~*
+
+# ========================================
