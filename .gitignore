@@ -1,8 +1,14 @@
-# Documentation (planning files)
-Continuity/
+# ========================================
+# Saekim - Markdown Editor
+# .gitignore
+# ========================================
+
+# ============ Development ============
+
+# Claude Code (AI assistant configuration)
 .claude/
 claude.md
-Progress/
+CLAUDE.md
 
 # Python
 __pycache__/
@@ -10,148 +16,119 @@ __pycache__/
 *$py.class
 *.so
 .Python
+
+# Virtual Environment
 venv/
 env/
+ENV/
+.venv
+
+# Distribution / Packaging
+build/
+dist/
 *.egg-info/
+*.egg
+*.whl
 
-# PyQt
-*.qm
+# PyInstaller
+*.spec
 
-# Data
-data/app.db
+# ============ IDE & Editors ============
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ============ OS Files ============
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ============ User Data ============
+
+# User data directory (contains user documents, settings, cache)
+# Keep directory structure but ignore user content
+data/*
+!data/.gitkeep
+!data/temp/
 data/temp/*
 !data/temp/.gitkeep
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Exports (user-generated files)
+exports/
+output/
 
-# Build
-build/
-dist/
-*.spec
+# ============ Logs ============
 
-# Tests
-.pytest_cache/
-.coverage
-htmlcov/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# ========================================
-# PRIVACY & PERSONAL DATA PROTECTION
-# ========================================
-
-# User Documents & Drafts
-*.md
-!README.md
-!IMPLEMENTATION_SUMMARY.md
-!PRIVACY_PROTECTION.md
-!PRIVACY_SUMMARY.md
-!LICENSE.md
-!CONTRIBUTING.md
-/documents/
-/drafts/
-/my_notes/
-/personal/
-
-# Database Files (contain user data)
-data/app.db
-data/app.db-*
-data/*.db
-data/*.sqlite
-data/*.sqlite3
-data/settings.json
-data/user_*.json
-data/recent_files.json
-
-# User Snippets & Templates (may contain personal code)
-data/snippets/
-data/templates/custom/
-data/user_templates/
-
-# Logs (may contain file paths, personal info)
+# Application logs
 *.log
 logs/
-data/logs/
 app.log
 error.log
 debug.log
 
-# Auto-save & Backup Files (user content)
-data/autosave/
-data/backup/
-*~
+# ============ Temporary Files ============
+
+*.tmp
+*.temp
 *.bak
 *.backup
-*.tmp
+~*
 .~lock.*
 
-# Browser Cache & Session Data
-data/cache/
-data/cookies/
-data/sessions/
-data/localstorage/
-data/webstorage/
+# ============ Testing ============
 
-# User Media (uploaded images, etc.)
-data/images/
-data/media/
-data/uploads/
-resources/user_uploads/
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
 
-# Export Output (user-generated documents)
-exports/
-output/
-*.export.pdf
-*.export.docx
-*.export.html
+# ============ Security ============
 
-# User Configuration (personal settings)
-config/user.json
-config/local.json
-.user.ini
-.local.ini
-user_config.yaml
-local_config.yaml
-
-# Credentials & API Keys
+# Environment variables
 .env
 .env.local
 .env.*.local
+
+# Credentials
 credentials.json
 secrets.json
-api_keys.json
-.secret
 *.key
 *.pem
 *.cert
 
-# Recent Files List (contains file paths)
-data/recent/
-.recent_files
-recent_files.txt
+# ============ Qt ============
 
-# User Search History
-data/search_history.json
-.search_history
+# Qt compiled translation files
+*.qm
 
-# Window Position & Size (may reveal screen setup)
-data/window_state.json
-.window_geometry
-
-# User Statistics (usage patterns)
-data/stats.json
-data/analytics.json
-data/usage.json
-
-# Temporary User Files
-temp_user_*/
-.temp_*
-~*
-
+# ========================================
+# Note: Markdown files are included by default
+# Only claude.md is excluded (AI instructions)
+# private/ is managed as a Git submodule
 # ========================================

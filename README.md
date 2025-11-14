@@ -61,7 +61,7 @@ python src/main.py
 이 프로젝트는 **GNU General Public License v3.0 (GPL-3.0)** 하에 배포됩니다.
 
 - **이유**: PyQt6가 GPL-3.0 라이선스를 사용하므로, 본 프로젝트도 GPL-3.0을 따라야 합니다.
-- **오픈소스 기여**: 모든 사용 라이브러리와 라이선스 정보는 [LICENSES.md](./LICENSES.md)에서 확인할 수 있습니다.
+- **오픈소스 기여**: 모든 사용 라이브러리와 라이선스 정보는 [LICENSES.md](Licenses/LICENSES.md)에서 확인할 수 있습니다.
 - **상업적 사용**: 상업적/독점적 사용을 원할 경우 PyQt6 대신 PySide6 (LGPL-3.0) 사용을 고려하거나, Qt 상업 라이선스를 구매하세요.
 
-자세한 내용은 [LICENSE](./LICENSE) 파일을 참고하세요.
+자세한 내용은 [LICENSE](Licenses/LICENSE) 파일을 참고하세요.
