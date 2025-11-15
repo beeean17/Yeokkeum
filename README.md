@@ -14,6 +14,9 @@
 - Python 3.10 이상
 - 4GB RAM 이상 권장
 - Windows 10/11, macOS 10.15+, Linux
+- **PDF 변환 기능 (Windows)**: GTK3 Runtime 필요
+  - 다운로드: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
+  - 설치 시 "Add to PATH" 옵션 선택 필수
 
 ### 설치 방법
 
@@ -48,14 +51,27 @@ python src/main.py
 
 ## 주요 기능
 
+### 편집 및 미리보기
 - ✅ 실시간 마크다운 미리보기
 - ✅ 코드 하이라이팅 (Highlight.js)
 - ✅ 다이어그램 렌더링 (Mermaid.js)
+  - Flowchart, Sequence, Class, State, ER 등 모든 다이어그램 지원
 - ✅ 수학 수식 렌더링 (KaTeX)
+  - 인라인 수식 및 블록 수식 지원
+
+### 파일 관리
 - ✅ 파일 열기/저장
 - ✅ 자동 저장
 - ✅ 라이트/다크 테마
-- ⏳ PDF/DOCX 변환 (개발 중)
+
+### 문서 변환
+- ✅ **PDF 변환** (WeasyPrint 기반)
+  - Mermaid 다이어그램 자동 PNG 변환
+  - KaTeX 수식 완벽 지원
+  - A4 페이지 자동 크기 조정
+  - 실시간 진행률 표시
+- ✅ **DOCX 변환**
+- ✅ **HTML 변환**
 
 ## 라이선스
 
