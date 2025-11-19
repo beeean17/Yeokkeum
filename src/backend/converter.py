@@ -75,6 +75,7 @@ class DocumentConverter:
         try:
             # Lazy import to avoid GTK3 dependency at startup
             from weasyprint import HTML, CSS
+            from weasyprint.text.fonts import FontConfiguration
 
             # Wrap the rendered HTML in a complete HTML document
             full_html = f"""
@@ -96,18 +97,26 @@ class DocumentConverter:
 </html>
 """
 
+            # Create font configuration
+            font_config = FontConfiguration()
+
             # Create PDF from HTML
             HTML(string=full_html).write_pdf(
                 output_path,
-                stylesheets=[CSS(string=self._get_pdf_css())]
+                stylesheets=[CSS(string=self._get_pdf_css())],
+                font_config=font_config
             )
 
             logger.info(f"PDF created from HTML successfully: {output_path}")
             return True, ""
 
         except ImportError as e:
-            error_msg = "WeasyPrint requires GTK3. Please install GTK3 runtime for Windows: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer"
-            logger.error(error_msg)
+            error_msg = (
+                "PDF 변환에 필요한 GTK3 라이브러리가 설치되지 않았습니다.\n\n"
+                "GTK3_INSTALL_GUIDE.md 파일을 참고하여 GTK3를 설치해주세요.\n\n"
+                "설치 링크: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases"
+            )
+            logger.error(f"GTK3 not installed: {e}")
             return False, error_msg
         except Exception as e:
             error_msg = f"PDF conversion from HTML failed: {str(e)}"
