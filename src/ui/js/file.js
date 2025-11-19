@@ -69,7 +69,62 @@ const FileModule = {
     },
 
     /**
-     * Export to PDF
+     * Print to PDF (Simple browser print dialog)
+     * This is the simplest way - no GTK3 required!
+     */
+    printToPDF() {
+        console.log('📄 Opening print dialog for PDF export...');
+
+        // Add print-specific styles
+        const style = document.createElement('style');
+        style.id = 'print-styles';
+        style.textContent = `
+            @media print {
+                body {
+                    background: white !important;
+                }
+                .pane-header,
+                .editor-pane,
+                .resizer,
+                .btn-icon {
+                    display: none !important;
+                }
+                .preview-pane {
+                    width: 100% !important;
+                    border: none !important;
+                }
+                .pane-content {
+                    padding: 20px !important;
+                }
+                img {
+                    max-width: 100% !important;
+                    page-break-inside: avoid !important;
+                }
+                pre {
+                    page-break-inside: avoid !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Open print dialog
+        window.print();
+
+        // Clean up
+        setTimeout(() => {
+            const printStyle = document.getElementById('print-styles');
+            if (printStyle) {
+                printStyle.remove();
+            }
+        }, 1000);
+
+        if (typeof Utils !== 'undefined') {
+            Utils.showToast('인쇄 대화상자에서 "PDF로 저장"을 선택하세요', 'info');
+        }
+    },
+
+    /**
+     * Export to PDF (Advanced - requires GTK3)
      */
     async exportToPDF() {
         if (!App.backend) {
@@ -119,6 +174,51 @@ const FileModule = {
 
             // Clone preview to process it
             const clonedPreview = previewElement.cloneNode(true);
+
+            // Fix image paths for PDF - convert to data URLs or absolute paths
+            const images = clonedPreview.querySelectorAll('img');
+            console.log(`🖼️ Processing ${images.length} images for PDF...`);
+
+            // Convert images to data URLs for embedding in PDF
+            for (const img of images) {
+                try {
+                    // Skip if already a data URL
+                    if (img.src.startsWith('data:')) continue;
+
+                    // For local images, convert to data URL
+                    if (img.src.startsWith('file://')) {
+                        // Create a canvas to convert image to data URL
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // Wait for image to load
+                        await new Promise((resolve, reject) => {
+                            const tempImg = new Image();
+                            tempImg.onload = () => {
+                                canvas.width = tempImg.naturalWidth;
+                                canvas.height = tempImg.naturalHeight;
+                                ctx.drawImage(tempImg, 0, 0);
+
+                                try {
+                                    const dataUrl = canvas.toDataURL('image/png');
+                                    img.src = dataUrl;
+                                    console.log(`✅ Image converted to data URL`);
+                                } catch (error) {
+                                    console.error('❌ Failed to convert image to data URL:', error);
+                                }
+                                resolve();
+                            };
+                            tempImg.onerror = () => {
+                                console.error('❌ Failed to load image:', img.src);
+                                reject();
+                            };
+                            tempImg.src = img.src;
+                        });
+                    }
+                } catch (error) {
+                    console.error('❌ Error processing image:', error);
+                }
+            }
 
             // Convert Mermaid SVGs to PNG images for better PDF compatibility
             const svgs = clonedPreview.querySelectorAll('.mermaid-container svg');

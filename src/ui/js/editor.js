@@ -299,8 +299,60 @@ const EditorModule = {
             EditorModule.wrapSelection('[', '](url)');
         },
 
-        image() {
-            EditorModule.wrapSelection('![', '](url)');
+        async image() {
+            // Call backend to select and copy image
+            if (typeof App === 'undefined' || !App.backend) {
+                // Fallback to simple text insertion if backend not available
+                EditorModule.wrapSelection('![', '](url)');
+                return;
+            }
+
+            try {
+                // Show loading toast
+                if (typeof Utils !== 'undefined') {
+                    Utils.showToast('이미지 선택 중...', 'info');
+                }
+
+                // Call backend to select image
+                const resultJson = await new Promise((resolve) => {
+                    App.backend.select_and_insert_image(resolve);
+                });
+
+                const result = JSON.parse(resultJson);
+
+                if (result.success) {
+                    // Get selected text (for alt text)
+                    const editor = document.getElementById('editor');
+                    const start = editor.selectionStart;
+                    const end = editor.selectionEnd;
+                    const selectedText = editor.value.substring(start, end);
+
+                    // Default alt text
+                    const altText = selectedText || '이미지';
+
+                    // Insert markdown image syntax with relative path
+                    const imageMarkdown = `![${altText}](${result.relative_path})`;
+                    EditorModule.insertText(imageMarkdown);
+
+                    // Show success message
+                    if (typeof Utils !== 'undefined') {
+                        Utils.showToast('이미지가 추가되었습니다', 'success');
+                    }
+
+                    console.log('✅ 이미지 삽입:', result.relative_path);
+                } else if (result.error && result.error !== 'Cancelled') {
+                    // Show error (but not for user cancellation)
+                    console.error('❌ 이미지 선택 실패:', result.error);
+                    if (typeof Utils !== 'undefined') {
+                        Utils.showToast('이미지 선택 실패: ' + result.error, 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ 이미지 삽입 오류:', error);
+                if (typeof Utils !== 'undefined') {
+                    Utils.showToast('이미지 삽입 중 오류 발생', 'error');
+                }
+            }
         },
 
         bulletList() {

@@ -18,6 +18,7 @@ class MenuBar(QMenuBar):
         """Create all menus"""
         self.create_file_menu()
         self.create_edit_menu()
+        self.create_insert_menu()
         self.create_view_menu()
         self.create_help_menu()
 
@@ -60,10 +61,14 @@ class MenuBar(QMenuBar):
         # Export submenu
         export_menu = file_menu.addMenu("내보내기(&E)")
 
+        # PDF export (requires GTK3)
         export_pdf_action = QAction("PDF로 내보내기...", self)
-        export_pdf_action.setStatusTip("문서를 PDF로 내보내기")
+        export_pdf_action.setShortcut("Ctrl+P")
+        export_pdf_action.setStatusTip("PDF로 내보내기 (GTK3 필요)")
         export_pdf_action.triggered.connect(self.export_pdf)
         export_menu.addAction(export_pdf_action)
+
+        export_menu.addSeparator()
 
         export_docx_action = QAction("DOCX로 내보내기...", self)
         export_docx_action.setStatusTip("문서를 DOCX로 내보내기")
@@ -141,6 +146,44 @@ class MenuBar(QMenuBar):
         replace_action.triggered.connect(self.replace)
         edit_menu.addAction(replace_action)
 
+    def create_insert_menu(self):
+        """Create Insert menu"""
+        insert_menu = self.addMenu("삽입(&I)")
+
+        # Image
+        image_action = QAction("이미지(&I)...", self)
+        image_action.setShortcut("Ctrl+Shift+I")
+        image_action.setStatusTip("이미지 삽입")
+        image_action.triggered.connect(self.insert_image)
+        insert_menu.addAction(image_action)
+
+        # Link
+        link_action = QAction("링크(&L)...", self)
+        link_action.setShortcut("Ctrl+K")
+        link_action.setStatusTip("하이퍼링크 삽입")
+        link_action.triggered.connect(self.insert_link)
+        insert_menu.addAction(link_action)
+
+        insert_menu.addSeparator()
+
+        # Table
+        table_action = QAction("표(&T)...", self)
+        table_action.setStatusTip("표 삽입")
+        table_action.triggered.connect(self.insert_table)
+        insert_menu.addAction(table_action)
+
+        # Code block
+        code_block_action = QAction("코드 블록(&C)", self)
+        code_block_action.setStatusTip("코드 블록 삽입")
+        code_block_action.triggered.connect(self.insert_code_block)
+        insert_menu.addAction(code_block_action)
+
+        # Horizontal rule
+        hr_action = QAction("구분선(&H)", self)
+        hr_action.setStatusTip("수평선 삽입")
+        hr_action.triggered.connect(self.insert_horizontal_rule)
+        insert_menu.addAction(hr_action)
+
     def create_view_menu(self):
         """Create View menu"""
         view_menu = self.addMenu("보기(&V)")
@@ -199,7 +242,7 @@ class MenuBar(QMenuBar):
         self.parent.webview.page().runJavaScript(js_code)
 
     def export_pdf(self):
-        """Export to PDF"""
+        """Export to PDF (Advanced - requires GTK3)"""
         js_code = "if (typeof FileModule !== 'undefined') { FileModule.exportToPDF(); }"
         self.parent.webview.page().runJavaScript(js_code)
 
@@ -273,3 +316,28 @@ class MenuBar(QMenuBar):
         """Show about dialog"""
         # TODO: Implement about dialog
         print("About dialog")
+
+    def insert_image(self):
+        """Insert image"""
+        js_code = "if (typeof ToolbarModule !== 'undefined') { ToolbarModule.image(); }"
+        self.parent.webview.page().runJavaScript(js_code)
+
+    def insert_link(self):
+        """Insert link"""
+        js_code = "if (typeof ToolbarModule !== 'undefined') { ToolbarModule.link(); }"
+        self.parent.webview.page().runJavaScript(js_code)
+
+    def insert_table(self):
+        """Insert table"""
+        js_code = "if (typeof ToolbarModule !== 'undefined') { ToolbarModule.insertTable(3, 3); }"
+        self.parent.webview.page().runJavaScript(js_code)
+
+    def insert_code_block(self):
+        """Insert code block"""
+        js_code = "if (typeof ToolbarModule !== 'undefined') { ToolbarModule.codeBlock(''); }"
+        self.parent.webview.page().runJavaScript(js_code)
+
+    def insert_horizontal_rule(self):
+        """Insert horizontal rule"""
+        js_code = "if (typeof ToolbarModule !== 'undefined') { ToolbarModule.horizontalRule(); }"
+        self.parent.webview.page().runJavaScript(js_code)

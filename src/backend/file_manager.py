@@ -4,8 +4,10 @@ Handles all file I/O operations for markdown files
 """
 
 import json
+import re
+import shutil
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from datetime import datetime
 
 
@@ -84,6 +86,11 @@ class FileManager:
             if not path.suffix:
                 path = path.with_suffix('.md')
 
+            # Move temporary images if this is a new file or "Save As"
+            is_new_location = (not self.current_file) or (file_path and Path(file_path) != self.current_file)
+            if is_new_location:
+                content = self._move_temp_images_to_file_location(content, path)
+
             # Write content
             with open(path, 'w', encoding=self.encoding) as f:
                 f.write(content)
@@ -144,3 +151,72 @@ class FileManager:
             "modified": self.is_modified,
             "exists": True
         }
+
+    def _extract_temp_image_paths(self, content: str) -> List[str]:
+        """
+        Extract temporary image paths from markdown content
+
+        Args:
+            content: Markdown content
+
+        Returns:
+            List of temporary image paths (data/temp/images/...)
+        """
+        # Pattern: ![...](data/temp/images/filename.ext) or ![...](data/images/filename.ext)
+        pattern = r'!\[.*?\]\((data/(?:temp/)?images/[^)]+)\)'
+        return re.findall(pattern, content)
+
+    def _move_temp_images_to_file_location(self, content: str, md_path: Path) -> str:
+        """
+        Move temporary images to markdown file location and update paths
+
+        Args:
+            content: Markdown content with temporary image paths
+            md_path: Path where markdown file will be saved
+
+        Returns:
+            Updated markdown content with new image paths
+        """
+        # Extract temporary image paths
+        temp_images = self._extract_temp_image_paths(content)
+
+        if not temp_images:
+            # No temporary images to move
+            return content
+
+        # Get project root (assuming this file is in src/backend/)
+        project_root = Path(__file__).parent.parent.parent
+
+        # Create images folder: {md_filename}_images/
+        images_dir = md_path.parent / f"{md_path.stem}_images"
+
+        # Only create folder if there are actually images to move
+        moved_count = 0
+
+        for temp_path in temp_images:
+            src = project_root / temp_path
+
+            if src.exists():
+                # Create images folder only when first image is moved
+                if moved_count == 0:
+                    images_dir.mkdir(exist_ok=True)
+
+                # Move image to new location
+                dest = images_dir / src.name
+
+                # Handle duplicate filenames
+                counter = 1
+                while dest.exists():
+                    stem = src.stem
+                    suffix = src.suffix
+                    dest = images_dir / f"{stem}_{counter}{suffix}"
+                    counter += 1
+
+                shutil.move(str(src), str(dest))
+                moved_count += 1
+
+                # Update markdown content with new relative path
+                new_relative_path = f"./{images_dir.name}/{dest.name}"
+                content = content.replace(temp_path, new_relative_path)
+
+        return content

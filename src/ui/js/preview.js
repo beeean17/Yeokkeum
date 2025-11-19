@@ -99,7 +99,20 @@ const PreviewModule = {
  * Render markdown using Marked.js
  */
 renderMarkdown(markdown) {
+    console.log('🔍 renderMarkdown called with content length:', markdown.length);
+    console.log('📝 Markdown content:', markdown.substring(0, 200));
+
     try {
+        // Check if marked is available
+        if (typeof marked === 'undefined') {
+            console.error('❌ Marked.js is not loaded!');
+            this.previewElement.innerHTML = `<div class="error">Marked.js is not loaded. Using fallback renderer.</div>`;
+            this.basicMarkdownToHtml(markdown);
+            return;
+        }
+
+        console.log('✅ Marked.js is available');
+
         // Protect math expressions from Marked.js parsing
         const mathExpressions = [];
         let processedMarkdown = markdown;
@@ -153,7 +166,10 @@ renderMarkdown(markdown) {
             });
 
             // Convert markdown to HTML
+            console.log('📄 Calling marked.parse()...');
             let html = marked.parse(processedMarkdown);
+            console.log('✅ marked.parse() returned HTML length:', html ? html.length : 0);
+            console.log('📄 HTML preview:', html ? html.substring(0, 200) : 'NULL');
 
             // Restore math expressions - content에 이미 순수 LaTeX만 있음
             console.log(`🔄 Restoring ${mathExpressions.length} math expressions...`);
@@ -180,10 +196,17 @@ renderMarkdown(markdown) {
                 });
             }
 
+            console.log('📝 Setting innerHTML...');
             this.previewElement.innerHTML = html;
+            console.log('✅ innerHTML set');
 
             // p 태그로 감싸진 math-display를 unwrap
             this.unwrapMathDisplays();
+
+            // Fix image paths - convert relative paths to absolute file:// URLs
+            console.log('🖼️ Calling fixImagePaths()...');
+            this.fixImagePaths();
+            console.log('✅ fixImagePaths() completed');
 
             if (typeof hljs !== 'undefined') {
                 this.previewElement.querySelectorAll('pre code').forEach((block) => {
@@ -213,6 +236,93 @@ escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+},
+
+/**
+ * Fix image paths - convert relative paths to absolute file:// URLs
+ */
+fixImagePaths() {
+    if (!this.previewElement) return;
+
+    const images = this.previewElement.querySelectorAll('img');
+    console.log(`🖼️ Found ${images.length} images to process`);
+
+    images.forEach((img, index) => {
+        const src = img.getAttribute('src');
+        if (!src) {
+            console.log(`⚠️ Image ${index} has no src`);
+            return;
+        }
+
+        console.log(`📸 Image ${index} original src: ${src}`);
+
+        // Skip if already a full URL (http://, https://, file://, data:)
+        if (src.match(/^(https?|file|data):/i)) {
+            console.log(`✓ Image ${index} already has full URL, skipping`);
+            return;
+        }
+
+        try {
+            // Get the current page's location
+            const currentLocation = window.location.href;
+            console.log(`📍 Current location: ${currentLocation}`);
+
+            // Get the directory of the current page (should be file:///.../src/ui/)
+            const currentDir = currentLocation.substring(0, currentLocation.lastIndexOf('/'));
+            console.log(`📂 Current dir: ${currentDir}`);
+
+            // Go up two levels to get project root (from src/ui to project root)
+            const parts = currentDir.split('/');
+            const projectRootParts = parts.slice(0, -2); // Remove 'ui' and 'src'
+            const projectRoot = projectRootParts.join('/');
+            console.log(`🏠 Project root: ${projectRoot}`);
+
+            // Construct absolute file:// URL
+            let absoluteUrl;
+
+            // Check if this is a relative path starting with './' or '../'
+            if (src.startsWith('./') || src.startsWith('../')) {
+                // Relative path from markdown file location
+                if (typeof App !== 'undefined' && App.state && App.state.currentFile) {
+                    // Get current markdown file's directory
+                    const mdFilePath = App.state.currentFile.replace(/\\/g, '/');
+                    console.log(`📄 Current MD file: ${mdFilePath}`);
+
+                    const mdFileDir = mdFilePath.substring(0, mdFilePath.lastIndexOf('/'));
+                    console.log(`📂 MD file dir: ${mdFileDir}`);
+
+                    // Convert Windows path to file:// URL if needed
+                    let mdFileDirUrl;
+                    if (mdFileDir.match(/^[A-Z]:/)) {
+                        // Windows absolute path (e.g., C:/Documents/...)
+                        mdFileDirUrl = `file:///${mdFileDir}`;
+                    } else {
+                        mdFileDirUrl = mdFileDir;
+                    }
+
+                    // Resolve relative path
+                    const cleanSrc = src.replace(/^\.\//, ''); // Remove leading './'
+                    absoluteUrl = `${mdFileDirUrl}/${cleanSrc}`;
+                    console.log(`✅ Resolved relative to MD file: ${absoluteUrl}`);
+                } else {
+                    // No current file, fall back to project root
+                    console.log(`⚠️ No current file, using project root`);
+                    absoluteUrl = `${projectRoot}/${src.replace(/^\.\//, '')}`;
+                }
+            } else if (src.startsWith('/')) {
+                // Absolute path from root - unlikely in our case
+                absoluteUrl = `file://${src}`;
+            } else {
+                // Relative path - resolve relative to project root (e.g., data/temp/images/...)
+                absoluteUrl = `${projectRoot}/${src}`;
+            }
+
+            console.log(`✅ Image ${index} fixed path: ${absoluteUrl}`);
+            img.setAttribute('src', absoluteUrl);
+        } catch (error) {
+            console.error(`❌ Error fixing image ${index} path:`, error);
+        }
+    });
 },
 
 /**

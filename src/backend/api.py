@@ -4,6 +4,8 @@ Provides QWebChannel API for JavaScript ↔ Python communication
 """
 
 import json
+import shutil
+from pathlib import Path
 from PyQt6.QtCore import QObject, pyqtSlot, pyqtSignal
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
@@ -532,3 +534,119 @@ class BackendAPI(QObject):
         except Exception as e:
             logger.error(f"Error in export_to_html: {e}")
             return json.dumps({"success": False, "filepath": "", "error": str(e)})
+
+    @pyqtSlot(result=str)
+    def select_and_insert_image(self) -> str:
+        """
+        Open file dialog to select an image, copy it to appropriate location,
+        and return the relative path for markdown insertion
+
+        Strategy:
+        - If current file is saved: copy to {md_filename}_images/ folder
+        - If current file is unsaved: copy to data/temp/images/ folder
+          (will be moved when file is saved)
+
+        Returns:
+            JSON string with {success, filepath, relative_path, error}
+        """
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self.main_window,
+                "이미지 선택",
+                "",
+                "Image Files (*.png *.jpg *.jpeg *.gif *.bmp *.svg *.webp);;All Files (*.*)"
+            )
+
+            if not file_path:
+                return json.dumps({
+                    "success": False,
+                    "filepath": "",
+                    "relative_path": "",
+                    "error": "Cancelled"
+                })
+
+            source_path = Path(file_path)
+
+            if not source_path.exists():
+                return json.dumps({
+                    "success": False,
+                    "filepath": "",
+                    "relative_path": "",
+                    "error": "File not found"
+                })
+
+            project_root = Path(__file__).parent.parent.parent
+
+            # Determine destination based on whether file is saved
+            if self.file_manager.current_file:
+                # Saved file: copy to {md_filename}_images/ folder
+                md_path = self.file_manager.current_file
+                images_dir = md_path.parent / f"{md_path.stem}_images"
+                images_dir.mkdir(exist_ok=True)
+
+                dest_filename = source_path.name
+                dest_path = images_dir / dest_filename
+
+                # Handle duplicate filenames
+                counter = 1
+                while dest_path.exists():
+                    stem = source_path.stem
+                    suffix = source_path.suffix
+                    dest_filename = f"{stem}_{counter}{suffix}"
+                    dest_path = images_dir / dest_filename
+                    counter += 1
+
+                # Copy image
+                shutil.copy2(source_path, dest_path)
+
+                # Use relative path from md file
+                relative_path_str = f"./{images_dir.name}/{dest_filename}"
+
+            else:
+                # Unsaved file: copy to data/temp/images/
+                temp_images_dir = project_root / 'data' / 'temp' / 'images'
+                temp_images_dir.mkdir(parents=True, exist_ok=True)
+
+                dest_filename = source_path.name
+                dest_path = temp_images_dir / dest_filename
+
+                # Handle duplicate filenames
+                counter = 1
+                while dest_path.exists():
+                    stem = source_path.stem
+                    suffix = source_path.suffix
+                    dest_filename = f"{stem}_{counter}{suffix}"
+                    dest_path = temp_images_dir / dest_filename
+                    counter += 1
+
+                # Copy image
+                shutil.copy2(source_path, dest_path)
+
+                # Use project-relative path (will be updated on save)
+                relative_path = dest_path.relative_to(project_root)
+                relative_path_str = str(relative_path).replace('\\', '/')
+
+            # Convert absolute path to file:// URL for QWebEngineView
+            absolute_path = dest_path.resolve()
+            file_url = absolute_path.as_uri()
+
+            logger.info(f"Image copied: {source_path} -> {dest_path}")
+            logger.info(f"Relative path: {relative_path_str}")
+            logger.info(f"File URL: {file_url}")
+
+            return json.dumps({
+                "success": True,
+                "filepath": str(dest_path),
+                "relative_path": relative_path_str,
+                "file_url": file_url,  # For preview rendering
+                "error": ""
+            })
+
+        except Exception as e:
+            logger.error(f"Error in select_and_insert_image: {e}")
+            return json.dumps({
+                "success": False,
+                "filepath": "",
+                "relative_path": "",
+                "error": str(e)
+            })
