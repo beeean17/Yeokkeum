@@ -650,3 +650,29 @@ class BackendAPI(QObject):
                 "relative_path": "",
                 "error": str(e)
             })
+
+    @pyqtSlot(result=str)
+    def get_project_root(self) -> str:
+        """
+        Get the project root directory path
+        Used by frontend to resolve relative image paths
+
+        Returns:
+            JSON string with {success, path, error}
+        """
+        try:
+            # Get project root (where main.py is located, then go up one level)
+            project_root = Path(__file__).parent.parent.parent.resolve()
+
+            return json.dumps({
+                "success": True,
+                "path": str(project_root),
+                "error": ""
+            })
+        except Exception as e:
+            logger.error(f"Error getting project root: {e}")
+            return json.dumps({
+                "success": False,
+                "path": "",
+                "error": str(e)
+            })

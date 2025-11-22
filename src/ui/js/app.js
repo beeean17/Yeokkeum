@@ -12,7 +12,8 @@ const App = {
         isDirty: false,
         theme: 'light',
         editorContent: '',
-        previewContent: ''
+        previewContent: '',
+        projectRoot: ''  // Project root path for resolving relative paths
     },
 
     /**
@@ -81,6 +82,22 @@ const App = {
             new QWebChannel(qt.webChannelTransport, (channel) => {
                 this.backend = channel.objects.backend;
                 console.log('✅ Python 백엔드 연결됨');
+
+                // Get project root for image path resolution
+                if (this.backend && this.backend.get_project_root) {
+                    this.backend.get_project_root((resultJson) => {
+                        try {
+                            const result = JSON.parse(resultJson);
+                            if (result.success) {
+                                this.state.projectRoot = result.path.replace(/\\/g, '/');
+                                console.log('🏠 프로젝트 루트:', this.state.projectRoot);
+                            }
+                        } catch (e) {
+                            console.error('프로젝트 루트 파싱 실패:', e);
+                        }
+                    });
+                }
+
                 resolve();
             });
 

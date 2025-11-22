@@ -4,6 +4,7 @@ Handles conversion between different document formats (MD, PDF, DOCX, HTML)
 """
 
 import os
+import asyncio
 import tempfile
 from pathlib import Path
 from typing import Tuple, Optional
@@ -11,6 +12,22 @@ from typing import Tuple, Optional
 from utils.logger import get_logger
 
 logger = get_logger()
+
+
+def _run_async(coro):
+    """Run async coroutine in sync context"""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If loop is already running (e.g., in Qt), create a new one
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, coro)
+                return future.result()
+        else:
+            return loop.run_until_complete(coro)
+    except RuntimeError:
+        return asyncio.run(coro)
 
 
 class DocumentConverter:
@@ -23,7 +40,7 @@ class DocumentConverter:
     def markdown_to_pdf(self, markdown_content: str, output_path: str,
                         title: str = "Document") -> Tuple[bool, str]:
         """
-        Convert Markdown to PDF
+        Convert Markdown to PDF using Playwright
 
         Args:
             markdown_content: Markdown text
@@ -34,25 +51,12 @@ class DocumentConverter:
             Tuple of (success, error_message)
         """
         try:
-            # Lazy import to avoid GTK3 dependency at startup
-            from weasyprint import HTML, CSS
-
             # Convert markdown to HTML first
             html_content = self._markdown_to_html(markdown_content, title)
 
-            # Create PDF from HTML
-            HTML(string=html_content).write_pdf(
-                output_path,
-                stylesheets=[CSS(string=self._get_pdf_css())]
-            )
+            # Use Playwright to generate PDF
+            return self._generate_pdf_with_playwright(html_content, output_path)
 
-            logger.info(f"PDF created successfully: {output_path}")
-            return True, ""
-
-        except ImportError as e:
-            error_msg = "WeasyPrint requires GTK3. Please install GTK3 runtime for Windows: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer"
-            logger.error(error_msg)
-            return False, error_msg
         except Exception as e:
             error_msg = f"PDF conversion failed: {str(e)}"
             logger.error(error_msg)
@@ -61,7 +65,7 @@ class DocumentConverter:
     def html_to_pdf(self, rendered_html: str, output_path: str,
                     title: str = "Document") -> Tuple[bool, str]:
         """
-        Convert rendered HTML to PDF
+        Convert rendered HTML to PDF using Playwright
         This method preserves all formatting including Mermaid diagrams and KaTeX equations
 
         Args:
@@ -73,20 +77,27 @@ class DocumentConverter:
             Tuple of (success, error_message)
         """
         try:
-            # Lazy import to avoid GTK3 dependency at startup
-            from weasyprint import HTML, CSS
-            from weasyprint.text.fonts import FontConfiguration
+            # Wrap the rendered HTML in a complete HTML document with all dependencies
+            full_html = self._create_full_html_for_pdf(rendered_html, title)
 
-            # Wrap the rendered HTML in a complete HTML document
-            full_html = f"""
-<!DOCTYPE html>
+            # Use Playwright to generate PDF
+            return self._generate_pdf_with_playwright(full_html, output_path)
+
+        except Exception as e:
+            error_msg = f"PDF conversion from HTML failed: {str(e)}"
+            logger.error(error_msg)
+            return False, error_msg
+
+    def _create_full_html_for_pdf(self, rendered_html: str, title: str) -> str:
+        """Create a complete HTML document for PDF generation with all necessary styles"""
+        return f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>{title}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <style>
-        /* Import KaTeX styles for math rendering */
-        @import url('https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css');
+        {self._get_pdf_css()}
     </style>
 </head>
 <body>
@@ -94,34 +105,81 @@ class DocumentConverter:
         {rendered_html}
     </div>
 </body>
-</html>
-"""
+</html>"""
 
-            # Create font configuration
-            font_config = FontConfiguration()
+    def _generate_pdf_with_playwright(self, html_content: str, output_path: str) -> Tuple[bool, str]:
+        """Generate PDF from HTML using Playwright"""
+        return _run_async(self._async_generate_pdf(html_content, output_path))
 
-            # Create PDF from HTML
-            HTML(string=full_html).write_pdf(
-                output_path,
-                stylesheets=[CSS(string=self._get_pdf_css())],
-                font_config=font_config
+    async def _async_generate_pdf(self, html_content: str, output_path: str) -> Tuple[bool, str]:
+        """Async implementation of PDF generation using Playwright"""
+        try:
+            from playwright.async_api import async_playwright
+        except ImportError:
+            error_msg = (
+                "Playwright가 설치되지 않았습니다.\n\n"
+                "다음 명령어로 설치해주세요:\n"
+                "pip install playwright\n"
+                "playwright install chromium"
             )
+            logger.error("Playwright not installed")
+            return False, error_msg
 
-            logger.info(f"PDF created from HTML successfully: {output_path}")
+        temp_html_path = None
+        try:
+            # Save HTML to temp file (Playwright needs a file or URL)
+            temp_html_path = self.temp_dir / f"temp_pdf_{os.getpid()}.html"
+            with open(temp_html_path, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+
+            async with async_playwright() as p:
+                # Launch browser in headless mode
+                browser = await p.chromium.launch(headless=True)
+                page = await browser.new_page()
+
+                # Load the HTML file
+                await page.goto(f'file:///{temp_html_path.as_posix()}', wait_until='networkidle')
+
+                # Wait for any dynamic content (KaTeX, Mermaid) to render
+                await page.wait_for_timeout(500)
+
+                # Generate PDF with A4 format
+                await page.pdf(
+                    path=output_path,
+                    format='A4',
+                    margin={
+                        'top': '2.5cm',
+                        'bottom': '2.5cm',
+                        'left': '2.5cm',
+                        'right': '2.5cm'
+                    },
+                    print_background=True,
+                    display_header_footer=True,
+                    header_template='<div></div>',
+                    footer_template='''
+                        <div style="font-size: 10px; text-align: center; width: 100%; color: #666;">
+                            <span class="pageNumber"></span> / <span class="totalPages"></span>
+                        </div>
+                    '''
+                )
+
+                await browser.close()
+
+            logger.info(f"PDF created successfully with Playwright: {output_path}")
             return True, ""
 
-        except ImportError as e:
-            error_msg = (
-                "PDF 변환에 필요한 GTK3 라이브러리가 설치되지 않았습니다.\n\n"
-                "GTK3_INSTALL_GUIDE.md 파일을 참고하여 GTK3를 설치해주세요.\n\n"
-                "설치 링크: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases"
-            )
-            logger.error(f"GTK3 not installed: {e}")
-            return False, error_msg
         except Exception as e:
-            error_msg = f"PDF conversion from HTML failed: {str(e)}"
+            error_msg = f"Playwright PDF generation failed: {str(e)}"
             logger.error(error_msg)
             return False, error_msg
+
+        finally:
+            # Clean up temp file
+            if temp_html_path and temp_html_path.exists():
+                try:
+                    temp_html_path.unlink()
+                except:
+                    pass
 
     def _markdown_to_html(self, markdown: str, title: str) -> str:
         """

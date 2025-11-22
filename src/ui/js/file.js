@@ -361,7 +361,7 @@ const FileModule = {
             console.log('  - HTML 크기:', renderedHTML.length, 'bytes');
             console.log('  - 문서 제목:', title);
 
-            this.showPDFProgress(80, 'PDF 생성 중...', 'WeasyPrint를 사용하여 PDF를 생성하고 있습니다...');
+            this.showPDFProgress(80, 'PDF 생성 중...', 'Playwright를 사용하여 PDF를 생성하고 있습니다...');
 
             // Simulate progress from 80% to 95% while waiting for PDF generation
             let currentProgress = 80;
@@ -415,10 +415,8 @@ const FileModule = {
 
                     // Provide helpful error messages
                     let errorMessage = 'PDF 생성 실패';
-                    if (result.error.includes('GTK3')) {
-                        errorMessage = 'GTK3가 필요합니다. README를 참조하여 설치해주세요.';
-                    } else if (result.error.includes('WeasyPrint')) {
-                        errorMessage = 'WeasyPrint 라이브러리 오류. requirements.txt를 확인해주세요.';
+                    if (result.error.includes('Playwright')) {
+                        errorMessage = 'Playwright가 필요합니다. pip install playwright && playwright install chromium';
                     } else {
                         errorMessage = `PDF 생성 실패: ${result.error}`;
                     }
