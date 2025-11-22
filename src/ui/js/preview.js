@@ -248,6 +248,25 @@ fixImagePaths() {
     const images = this.previewElement.querySelectorAll('img');
     console.log(`🖼️ Found ${images.length} images to process`);
 
+    // Get project root from App state (set during initialization)
+    let projectRoot = '';
+    if (typeof App !== 'undefined' && App.state && App.state.projectRoot) {
+        projectRoot = App.state.projectRoot;
+        console.log(`🏠 Project root from App state: ${projectRoot}`);
+    }
+
+    // Fallback: calculate from window.location
+    if (!projectRoot) {
+        const currentLocation = window.location.href;
+        const currentDir = currentLocation.substring(0, currentLocation.lastIndexOf('/'));
+        const parts = currentDir.split('/');
+        const projectRootParts = parts.slice(0, -2); // Remove 'ui' and 'src'
+        projectRoot = projectRootParts.join('/');
+        // Remove file:/// prefix if present for consistency
+        projectRoot = projectRoot.replace(/^file:\/\/\/?/, '');
+        console.log(`🏠 Project root from location: ${projectRoot}`);
+    }
+
     images.forEach((img, index) => {
         const src = img.getAttribute('src');
         if (!src) {
@@ -264,21 +283,6 @@ fixImagePaths() {
         }
 
         try {
-            // Get the current page's location
-            const currentLocation = window.location.href;
-            console.log(`📍 Current location: ${currentLocation}`);
-
-            // Get the directory of the current page (should be file:///.../src/ui/)
-            const currentDir = currentLocation.substring(0, currentLocation.lastIndexOf('/'));
-            console.log(`📂 Current dir: ${currentDir}`);
-
-            // Go up two levels to get project root (from src/ui to project root)
-            const parts = currentDir.split('/');
-            const projectRootParts = parts.slice(0, -2); // Remove 'ui' and 'src'
-            const projectRoot = projectRootParts.join('/');
-            console.log(`🏠 Project root: ${projectRoot}`);
-
-            // Construct absolute file:// URL
             let absoluteUrl;
 
             // Check if this is a relative path starting with './' or '../'
@@ -292,34 +296,39 @@ fixImagePaths() {
                     const mdFileDir = mdFilePath.substring(0, mdFilePath.lastIndexOf('/'));
                     console.log(`📂 MD file dir: ${mdFileDir}`);
 
-                    // Convert Windows path to file:// URL if needed
-                    let mdFileDirUrl;
-                    if (mdFileDir.match(/^[A-Z]:/)) {
-                        // Windows absolute path (e.g., C:/Documents/...)
-                        mdFileDirUrl = `file:///${mdFileDir}`;
-                    } else {
-                        mdFileDirUrl = mdFileDir;
-                    }
-
                     // Resolve relative path
                     const cleanSrc = src.replace(/^\.\//, ''); // Remove leading './'
-                    absoluteUrl = `${mdFileDirUrl}/${cleanSrc}`;
+                    absoluteUrl = `file:///${mdFileDir}/${cleanSrc}`;
                     console.log(`✅ Resolved relative to MD file: ${absoluteUrl}`);
                 } else {
                     // No current file, fall back to project root
                     console.log(`⚠️ No current file, using project root`);
-                    absoluteUrl = `${projectRoot}/${src.replace(/^\.\//, '')}`;
+                    const cleanSrc = src.replace(/^\.\//, '');
+                    absoluteUrl = `file:///${projectRoot}/${cleanSrc}`;
                 }
             } else if (src.startsWith('/')) {
-                // Absolute path from root - unlikely in our case
+                // Absolute path from root
                 absoluteUrl = `file://${src}`;
             } else {
-                // Relative path - resolve relative to project root (e.g., data/temp/images/...)
-                absoluteUrl = `${projectRoot}/${src}`;
+                // Relative path without ./ - resolve relative to project root
+                // This handles paths like "data/temp/images/..."
+                absoluteUrl = `file:///${projectRoot}/${src}`;
             }
+
+            // Ensure proper URL encoding for spaces and special characters
+            // But don't double-encode already encoded characters
+            absoluteUrl = absoluteUrl.replace(/ /g, '%20');
 
             console.log(`✅ Image ${index} fixed path: ${absoluteUrl}`);
             img.setAttribute('src', absoluteUrl);
+
+            // Add error handler for debugging
+            img.onerror = () => {
+                console.error(`❌ Failed to load image: ${absoluteUrl}`);
+            };
+            img.onload = () => {
+                console.log(`✅ Image loaded successfully: ${absoluteUrl}`);
+            };
         } catch (error) {
             console.error(`❌ Error fixing image ${index} path:`, error);
         }
