@@ -41,7 +41,7 @@ class StartupDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("새김 - 마크다운 에디터")
-        self.setFixedSize(500, 450)
+        self.setFixedSize(500, 480)
         self.setWindowFlags(
             Qt.WindowType.Dialog |
             Qt.WindowType.WindowCloseButtonHint
@@ -271,7 +271,7 @@ class StartupDialog(QDialog):
 
         # 버튼 영역
         buttons_layout = QVBoxLayout()
-        buttons_layout.setSpacing(10)
+        buttons_layout.setSpacing(15)
 
         # 1. 새 파일 만들기 버튼
         self.new_file_btn = self._create_action_button(
@@ -304,13 +304,14 @@ class StartupDialog(QDialog):
     def _create_action_button(self, title: str, description: str, callback) -> QPushButton:
         """액션 버튼 생성"""
         btn = QPushButton()
-        btn.setMinimumHeight(60)
+        btn.setMinimumHeight(55)
+        btn.setMaximumHeight(55)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.clicked.connect(callback)
 
         # 버튼 내부에 레이아웃 사용
         btn_layout = QVBoxLayout(btn)
-        btn_layout.setContentsMargins(10, 5, 10, 5)
+        btn_layout.setContentsMargins(10, 8, 10, 8)
         btn_layout.setSpacing(2)
 
         # 제목
