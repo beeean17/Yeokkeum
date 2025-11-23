@@ -6,7 +6,7 @@ Provides QWebChannel API for JavaScript ↔ Python communication
 import json
 import shutil
 from pathlib import Path
-from PyQt6.QtCore import QObject, pyqtSlot, pyqtSignal
+from PyQt6.QtCore import QObject, pyqtSlot, pyqtSignal, QSettings
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
 from backend.file_manager import FileManager
@@ -702,5 +702,58 @@ class BackendAPI(QObject):
             return json.dumps({
                 "success": False,
                 "path": "",
+                "error": str(e)
+            })
+
+    @pyqtSlot(str, result=str)
+    def save_theme(self, theme: str) -> str:
+        """
+        Save theme preference to QSettings
+
+        Args:
+            theme: Theme name ('light' or 'dark')
+
+        Returns:
+            JSON string with {success, error}
+        """
+        try:
+            settings = QSettings("Saekim", "SaekimEditor")
+            settings.setValue("theme", theme)
+            logger.info(f"Theme saved: {theme}")
+
+            return json.dumps({
+                "success": True,
+                "error": ""
+            })
+        except Exception as e:
+            logger.error(f"Error saving theme: {e}")
+            return json.dumps({
+                "success": False,
+                "error": str(e)
+            })
+
+    @pyqtSlot(result=str)
+    def load_theme(self) -> str:
+        """
+        Load saved theme preference from QSettings
+
+        Returns:
+            JSON string with {success, theme, error}
+        """
+        try:
+            settings = QSettings("Saekim", "SaekimEditor")
+            theme = settings.value("theme", "light")
+            logger.info(f"Theme loaded: {theme}")
+
+            return json.dumps({
+                "success": True,
+                "theme": theme,
+                "error": ""
+            })
+        except Exception as e:
+            logger.error(f"Error loading theme: {e}")
+            return json.dumps({
+                "success": False,
+                "theme": "light",
                 "error": str(e)
             })

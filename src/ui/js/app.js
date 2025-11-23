@@ -251,6 +251,20 @@ const App = {
 
         document.body.setAttribute('data-theme', theme);
         console.log(`✅ 테마 변경: ${theme}`);
+
+        // Save theme to QSettings via backend (for next startup)
+        if (this.backend && this.backend.save_theme) {
+            this.backend.save_theme(theme, (resultJson) => {
+                try {
+                    const result = JSON.parse(resultJson);
+                    if (result.success) {
+                        console.log('✅ 테마 설정 저장됨');
+                    }
+                } catch (e) {
+                    console.error('테마 저장 실패:', e);
+                }
+            });
+        }
     },
 
     /**
@@ -406,3 +420,23 @@ const App = {
 document.addEventListener('DOMContentLoaded', () => {
     App.init();
 });
+
+// Global function for setting editor content from Python backend
+window.setEditorContent = function(content) {
+    if (typeof EditorModule !== 'undefined' && EditorModule.setContent) {
+        EditorModule.setContent(content);
+        App.state.editorContent = content;
+        App.state.isDirty = false;
+        // Clear localStorage draft since we're loading from file
+        localStorage.removeItem('saekim_draft');
+        console.log('✅ 초기 콘텐츠 설정됨 (' + content.length + ' chars)');
+    } else {
+        console.error('❌ EditorModule not available');
+    }
+};
+
+// Global function for setting current file path from Python backend
+window.setCurrentFile = function(filePath) {
+    App.state.currentFile = filePath;
+    console.log('✅ 현재 파일 설정:', filePath);
+};
