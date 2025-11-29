@@ -33,6 +33,10 @@ dist/
 # PyInstaller
 *.spec
 
+# Beta Build Files
+build.bat
+BETA_README.md
+
 # ============ IDE & Editors ============
 
 # VS Code
