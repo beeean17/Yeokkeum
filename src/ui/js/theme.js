@@ -13,23 +13,23 @@ const ThemeModule = {
         // Load saved theme or detect system preference
         this.loadTheme();
 
-        // Listen for system theme changes
-        if (window.matchMedia) {
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (!localStorage.getItem(this.THEME_KEY)) {
-                    // Only auto-switch if user hasn't set a preference
-                    this.setTheme(e.matches ? 'dark' : 'light', false);
-                }
-            });
-        }
+        // Listen for system theme changes - REMOVED
+        // if (window.matchMedia) {
+        //     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        //         if (!localStorage.getItem(this.THEME_KEY)) {
+        //             // Only auto-switch if user hasn't set a preference
+        //             this.setTheme(e.matches ? 'dark' : 'light', false);
+        //         }
+        //     });
+        // }
 
-        // Setup theme toggle button
-        const themeButton = document.getElementById('btn-theme');
-        if (themeButton) {
-            themeButton.addEventListener('click', () => {
-                this.toggleTheme();
-            });
-        }
+        // Setup theme toggle button - REMOVED
+        // const themeButton = document.getElementById('btn-theme');
+        // if (themeButton) {
+        //     themeButton.addEventListener('click', () => {
+        //         this.toggleTheme();
+        //     });
+        // }
 
         console.log('✅ Theme 모듈 초기화 완료:', this.currentTheme);
     },
@@ -43,9 +43,8 @@ const ThemeModule = {
         if (savedTheme) {
             this.setTheme(savedTheme, false);
         } else {
-            // Detect system preference
-            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            this.setTheme(prefersDark ? 'dark' : 'light', false);
+            // Default to dark if no preference
+            this.setTheme('dark', false);
         }
     },
 
@@ -109,5 +108,19 @@ const ThemeModule = {
      */
     isDarkTheme() {
         return this.currentTheme === 'dark';
+    },
+
+    /**
+     * Load specific theme CSS file
+     * @param {string} cssFile - Filename of the CSS file (e.g., 'nord.css')
+     */
+    loadThemeCSS(cssFile) {
+        const linkElement = document.getElementById('theme-stylesheet');
+        if (linkElement) {
+            linkElement.href = `css/themes/${cssFile}`;
+            console.log('🎨 테마 CSS 로드:', cssFile);
+        } else {
+            console.error('❌ Theme stylesheet link element not found');
+        }
     }
 };

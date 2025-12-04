@@ -175,7 +175,7 @@ class FileExplorer(QDockWidget):
         self.path_label.setText(f"📁 {path_str}")
 
         # Update path label styling to match tree view
-        self.update_path_label_style()
+        # self.update_path_label_style()  # Removed in favor of global QSS
 
         # Expand the root
         self.tree.expand(root_index)
@@ -253,24 +253,10 @@ class FileExplorer(QDockWidget):
         self.back_button.setEnabled(self.history_index > 0)
         self.forward_button.setEnabled(self.history_index < len(self.path_history) - 1)
 
-    def update_path_label_style(self):
-        """
-        Update path label styling to match tree view colors
-        """
-        # Get colors from tree view palette
-        palette = self.tree.palette()
-        bg_color = palette.color(palette.ColorRole.Base)
-        text_color = palette.color(palette.ColorRole.Text)
-        border_color = palette.color(palette.ColorRole.Mid)
-
-        style = f"""
-            QLabel {{
-                padding: 8px 10px;
-                background-color: {bg_color.name()};
-                border-bottom: 1px solid {border_color.name()};
-                font-size: 12px;
-                color: {text_color.name()};
-            }}
-        """
-        self.path_label.setStyleSheet(style)
+    # def update_path_label_style(self):
+    #     """
+    #     Update path label styling to match tree view colors
+    #     """
+    #     # Removed in favor of global QSS
+    #     pass
 

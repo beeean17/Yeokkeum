@@ -2,38 +2,38 @@
 
 :root {
     /* Background colors */
-    --bg-primary: #1e1e1e;
-    --bg-secondary: #252526;
-    --bg-tertiary: #333333;
+    --bg-primary: #0F0F1A;
+    --bg-secondary: #1A1A2F;
+    --bg-tertiary: #252540;
 
     /* Text colors */
-    --text-primary: #d4d4d4;
-    --text-secondary: #858585;
-    --text-tertiary: #6a6a6a;
+    --text-primary: #E0E0E0;
+    --text-secondary: #A0A0B0;
+    --text-tertiary: #606070;
 
     /* Border colors */
-    --border-color: #3c3c3c;
-    --border-light: #2d2d2d;
+    --border-color: #00F0FF;
+    --border-light: #2A2A40;
 
     /* Accent colors */
-    --accent-color: #0E639C;
-    --accent-hover: #1177BB;
-    --accent-light: #094771;
+    --accent-color: #00F0FF;
+    --accent-hover: #00BFFF;
+    --accent-light: #00FFFF;
 
     /* Status colors */
-    --success-color: #4EC9B0;
-    --warning-color: #CE9178;
-    --error-color: #F48771;
-    --info-color: #0E639C;
+    --success-color: #00FF99;
+    --warning-color: #FFCC00;
+    --error-color: #FF0055;
+    --info-color: #00F0FF;
 
     /* Code colors */
-    --code-bg: #252526;
-    --code-text: #D16D9E;
+    --code-bg: #1A1A2F;
+    --code-text: #FF00FF;
 
     /* Shadow */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
-    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 0 5px rgba(0, 240, 255, 0.2);
+    --shadow-md: 0 0 10px rgba(0, 240, 255, 0.15);
+    --shadow-lg: 0 0 20px rgba(0, 240, 255, 0.1);
 }
 
 /* Override specific elements for dark theme */
@@ -79,7 +79,7 @@ body[data-theme="dark"] #preview .katex .rule {
 }
 
 /* KaTeX root symbols */
-body[data-theme="dark"] #preview .katex .sqrt > .root {
+body[data-theme="dark"] #preview .katex .sqrt>.root {
     color: var(--text-primary);
 }
 

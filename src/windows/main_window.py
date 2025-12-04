@@ -13,7 +13,7 @@ from typing import Dict, Optional
 from PyQt6.QtWidgets import QMainWindow, QTabWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
-from PyQt6.QtCore import QUrl, Qt
+from PyQt6.QtCore import QUrl, Qt, QFile, QTextStream
 from PyQt6.QtGui import QCloseEvent
 
 from .menu_bar import MenuBar
@@ -24,6 +24,7 @@ from backend.api import BackendAPI
 from backend.tab_manager import TabManager
 from backend.session_manager import SessionManager
 from backend.file_manager import FileManager
+from utils.theme_manager import ThemeManager
 
 
 class MainWindow(QMainWindow):
@@ -55,8 +56,46 @@ class MainWindow(QMainWindow):
 
         self.setup_ui()
         self.setup_backend()
+        
+        # Initialize theme manager before menu bar
+        self.theme_manager = ThemeManager(self.session_manager.session_file)
+        
         self.setup_menu_and_toolbar()
+        
+        # Apply initial theme
+        self.apply_theme(self.theme_manager.current_theme)
+        
         self.restore_session()
+
+    def apply_theme(self, theme_name: str):
+        """Apply theme using ThemeManager"""
+        theme_data = self.theme_manager.apply_theme(theme_name)
+        
+        # Save preference
+        self.theme_manager.save_preference()
+        
+        # Update webview if it exists
+        if hasattr(self, 'webview_cache'):
+            for webview in self.webview_cache.values():
+                self.update_webview_theme(webview, theme_data)
+
+    def update_webview_theme(self, webview: QWebEngineView, theme_data: dict):
+        """Update theme in a specific webview"""
+        if not theme_data:
+            return
+            
+        css_file = theme_data.get('css')
+        if css_file:
+            # We need to tell the webview to load this CSS file
+            # This logic depends on how the webview handles themes.
+            # Assuming we have a JS function to set the theme CSS.
+            js_code = f"if (typeof ThemeModule !== 'undefined') {{ ThemeModule.loadThemeCSS('{css_file}'); }}"
+            webview.page().runJavaScript(js_code)
+            
+        # Also set the theme mode (light/dark) for other JS logic
+        mode = 'dark' if theme_data.get('is_dark') else 'light'
+        js_code = f"if (typeof ThemeModule !== 'undefined') {{ ThemeModule.setTheme('{mode}'); }}"
+        webview.page().runJavaScript(js_code)
 
     def setup_ui(self):
         """Initialize UI components with tab interface"""
@@ -84,87 +123,17 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tab_widget)
 
         # Apply tab styling after file explorer is created
-        self.apply_tab_styling()
+        # self.apply_tab_styling()  # Removed in favor of global QSS
 
         print("[OK] Tab interface and file explorer initialized")
 
-    def apply_tab_styling(self):
-        """
-        Apply tab styling to match file explorer colors
-        Uses system palette from file explorer for consistency
-        """
-        # Get colors from file explorer's tree view palette
-        palette = self.file_explorer.tree.palette()
-        base_bg_color = palette.color(palette.ColorRole.Base)
-        text_color = palette.color(palette.ColorRole.Text).name()
-        border_color = palette.color(palette.ColorRole.Mid).name()
-
-        # Detect if we're in dark mode based on text color brightness
-        text_brightness = palette.color(palette.ColorRole.Text).lightness()
-        is_dark_mode = text_brightness > 128
-
-        # Create colors for different tab states
-        if is_dark_mode:
-            # Dark mode: selected tab is brighter, inactive is darker
-            selected_bg = base_bg_color.name()  # Keep original (brightest)
-            inactive_bg = base_bg_color.darker(130).name()  # Much darker for contrast
-            hover_bg = base_bg_color.darker(115).name()  # Between selected and inactive
-            close_icon_color = "#d0d0d0"
-        else:
-            # Light mode: selected tab is lighter, inactive is darker
-            selected_bg = base_bg_color.name()  # Keep original (lightest)
-            inactive_bg = base_bg_color.darker(115).name()  # Darker for contrast
-            hover_bg = base_bg_color.darker(107).name()  # Slightly darker on hover
-            close_icon_color = "#5f6368"
-
-        # Apply styling matching file explorer colors
-        style = f"""
-            QTabWidget::pane {{
-                border: 1px solid {border_color};
-                background: {selected_bg};
-            }}
-            QTabBar {{
-                background: {selected_bg};
-            }}
-            QTabBar::tab {{
-                background: {inactive_bg};
-                color: {text_color};
-                border: 1px solid {border_color};
-                border-bottom: none;
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
-                padding: 8px 12px;
-                margin-right: 2px;
-            }}
-            QTabBar::tab:selected {{
-                background: {selected_bg};
-                color: {text_color};
-                border-bottom: 1px solid {selected_bg};
-            }}
-            QTabBar::tab:hover {{
-                background: {hover_bg};
-                color: {text_color};
-            }}
-            QTabBar::close-button {{
-                image: url(data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M 4,4 L 12,12 M 4,12 L 12,4" stroke="{close_icon_color}" stroke-width="2" stroke-linecap="round"/></svg>);
-                subcontrol-position: right;
-                subcontrol-origin: padding;
-                background: transparent;
-                border: none;
-                border-radius: 9px;
-                width: 18px;
-                height: 18px;
-                margin: 0px 4px 0px 8px;
-            }}
-            QTabBar::close-button:hover {{
-                background-color: rgba(128, 128, 128, 0.15);
-            }}
-            QTabBar::close-button:pressed {{
-                background-color: rgba(128, 128, 128, 0.25);
-            }}
-        """
-
-        self.tab_widget.setStyleSheet(style)
+    # def apply_tab_styling(self):
+    #     """
+    #     Apply tab styling to match file explorer colors
+    #     Uses system palette from file explorer for consistency
+    #     """
+    #     # Removed in favor of global QSS
+    #     pass
 
     def create_webview(self, tab_id: str) -> QWebEngineView:
         """
@@ -215,6 +184,11 @@ class MainWindow(QMainWindow):
         """
         if not ok:
             return
+
+        # Apply current theme to the new webview
+        webview = self.webview_cache.get(tab_id)
+        if webview:
+            self.update_webview_theme(webview, self.theme_manager.get_current_theme_data())
 
         # Get tab info
         tab = self.tab_manager.get_tab(tab_id)
