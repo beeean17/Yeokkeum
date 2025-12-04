@@ -171,15 +171,15 @@ class MenuBar(QMenuBar):
         # Theme submenu
         theme_menu = view_menu.addMenu("테마(&T)")
 
-        light_theme_action = QAction("라이트 모드", self)
-        light_theme_action.setStatusTip("라이트 테마 적용")
-        light_theme_action.triggered.connect(lambda: self.set_theme('light'))
-        theme_menu.addAction(light_theme_action)
-
-        dark_theme_action = QAction("다크 모드", self)
-        dark_theme_action.setStatusTip("다크 테마 적용")
-        dark_theme_action.triggered.connect(lambda: self.set_theme('dark'))
-        theme_menu.addAction(dark_theme_action)
+        # Get available themes from ThemeManager
+        themes = self.parent.theme_manager.THEMES
+        
+        for theme_key, theme_data in themes.items():
+            action = QAction(theme_data['name'], self)
+            action.setStatusTip(f"{theme_data['name']} 테마 적용")
+            # Use default argument to capture loop variable
+            action.triggered.connect(lambda checked, t=theme_key: self.set_theme(t))
+            theme_menu.addAction(action)
 
         view_menu.addSeparator()
 
@@ -307,19 +307,11 @@ class MenuBar(QMenuBar):
 
     def set_theme(self, theme):
         """Set theme"""
-        # Update webview theme
-        js_code = f"if (typeof ThemeModule !== 'undefined') {{ ThemeModule.setTheme('{theme}'); }}"
-        webview = self.get_active_webview()
-        if webview:
-            webview.page().runJavaScript(js_code)
-
-        # Update tab styling based on theme
-        is_dark = theme == 'dark'
-        self.parent.apply_tab_styling(is_dark_mode=is_dark)
-
-        # Update file explorer styling
-        if hasattr(self.parent, 'file_explorer'):
-            self.parent.file_explorer.update_path_label_style(is_dark_mode=is_dark)
+        self.parent.apply_theme(theme)
+        
+        # Update file explorer styling if needed (handled by global QSS mostly now)
+        # But we might want to trigger a refresh or specific logic if needed
+        pass
 
     def toggle_fullscreen(self):
         """Toggle fullscreen"""
