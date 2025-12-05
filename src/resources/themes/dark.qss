@@ -21,9 +21,10 @@ QDockWidget {
 
 QDockWidget::title {
     background-color: #252526;
-    padding: 8px;
+    padding: 6px;
     border-radius: 4px;
     color: #CCCCCC;
+    min-height: 24px; /* Total height ~36px with padding */
 }
 
 /* Tree View (File Explorer) */
@@ -65,9 +66,10 @@ QTabBar::tab {
     border-bottom: none;
     border-top-left-radius: 6px;
     border-top-right-radius: 6px;
-    padding: 8px 16px;
+    padding: 6px 16px;
     margin-right: 4px;
     min-width: 100px;
+    min-height: 24px; /* Match DockWidget title height */
 }
 
 QTabBar::tab:selected {

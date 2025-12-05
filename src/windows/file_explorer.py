@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (QDockWidget, QTreeView, QWidget, QVBoxLayout,
                               QSizePolicy, QMenu)
 from PyQt6.QtCore import pyqtSignal, Qt, QDir
 from PyQt6.QtGui import QFileSystemModel
+from utils.design_manager import DesignManager
 
 
 class FileExplorer(QDockWidget):
@@ -58,14 +59,14 @@ class FileExplorer(QDockWidget):
         actions_layout.setContentsMargins(5, 5, 5, 0)
         
         # New File Button
-        self.btn_new_file = QPushButton("+ New")
+        self.btn_new_file = QPushButton(DesignManager.Icons.NEW_FILE)
         self.btn_new_file.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_new_file.setToolTip("New File")
         self.btn_new_file.clicked.connect(self.new_file_requested.emit)
         actions_layout.addWidget(self.btn_new_file)
         
         # Open Folder Button
-        self.btn_open_folder = QPushButton("📂")
+        self.btn_open_folder = QPushButton(DesignManager.Icons.OPEN_FOLDER)
         self.btn_open_folder.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_open_folder.setToolTip("Open Folder")
         self.btn_open_folder.setFixedSize(30, 24)
@@ -73,7 +74,7 @@ class FileExplorer(QDockWidget):
         actions_layout.addWidget(self.btn_open_folder)
         
         # Import/Export Menu Button
-        self.btn_import_export = QPushButton("⬇️")
+        self.btn_import_export = QPushButton(DesignManager.Icons.IMPORT_EXPORT)
         self.btn_import_export.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_import_export.setToolTip("Import/Export")
         self.btn_import_export.setFixedSize(30, 24)
@@ -107,7 +108,7 @@ class FileExplorer(QDockWidget):
 
         # Back button
         self.back_button = QToolButton()
-        self.back_button.setText("←")
+        self.back_button.setText(DesignManager.Icons.BACK)
         self.back_button.setToolTip("이전 경로")
         self.back_button.setEnabled(False)
         self.back_button.clicked.connect(self.go_back)
@@ -115,7 +116,7 @@ class FileExplorer(QDockWidget):
 
         # Forward button
         self.forward_button = QToolButton()
-        self.forward_button.setText("→")
+        self.forward_button.setText(DesignManager.Icons.FORWARD)
         self.forward_button.setToolTip("다음 경로")
         self.forward_button.setEnabled(False)
         self.forward_button.clicked.connect(self.go_forward)
@@ -123,7 +124,7 @@ class FileExplorer(QDockWidget):
 
         # Up button
         self.up_button = QToolButton()
-        self.up_button.setText("↑")
+        self.up_button.setText(DesignManager.Icons.UP)
         self.up_button.setToolTip("상위 디렉토리")
         self.up_button.clicked.connect(self.go_up)
         nav_layout.addWidget(self.up_button)
@@ -169,7 +170,7 @@ class FileExplorer(QDockWidget):
         footer_layout = QHBoxLayout(footer_widget)
         footer_layout.setContentsMargins(5, 5, 5, 5)
         
-        self.btn_settings = QPushButton("⚙️ Settings")
+        self.btn_settings = QPushButton(DesignManager.Icons.SETTINGS)
         self.btn_settings.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_settings.setFlat(True)
         self.btn_settings.clicked.connect(self.settings_requested.emit)

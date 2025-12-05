@@ -4,6 +4,7 @@ Custom Title Bar Widget
 
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton, QFrame
 from PyQt6.QtCore import Qt, pyqtSignal
+from utils.design_manager import DesignManager
 
 class TitleBar(QFrame):
     """
@@ -29,7 +30,7 @@ class TitleBar(QFrame):
         layout.setSpacing(8)
         
         # --- Left: Navigation ---
-        self.btn_sidebar = QPushButton("☰")
+        self.btn_sidebar = QPushButton(DesignManager.Icons.HAMBURGER)
         self.btn_sidebar.setFixedSize(26, 26)
         self.btn_sidebar.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_sidebar.setToolTip("Toggle Sidebar")
@@ -50,7 +51,7 @@ class TitleBar(QFrame):
         controls_layout = QHBoxLayout()
         controls_layout.setSpacing(4)
 
-        self.btn_min = QPushButton("─")
+        self.btn_min = QPushButton(DesignManager.Icons.MINIMIZE)
         self.btn_min.setFixedSize(26, 26)
         self.btn_min.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_min.setToolTip("Minimize")
@@ -58,7 +59,7 @@ class TitleBar(QFrame):
         self.btn_min.setObjectName("TitleBarButton")
         controls_layout.addWidget(self.btn_min)
 
-        self.btn_max = QPushButton("□")
+        self.btn_max = QPushButton(DesignManager.Icons.MAXIMIZE)
         self.btn_max.setFixedSize(26, 26)
         self.btn_max.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_max.setToolTip("Maximize")
@@ -66,7 +67,7 @@ class TitleBar(QFrame):
         self.btn_max.setObjectName("TitleBarButton")
         controls_layout.addWidget(self.btn_max)
 
-        self.btn_close = QPushButton("✕")
+        self.btn_close = QPushButton(DesignManager.Icons.CLOSE)
         self.btn_close.setFixedSize(26, 26)
         self.btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_close.setToolTip("Close")
@@ -103,10 +104,10 @@ class TitleBar(QFrame):
             return
             
         if self.parent.isMaximized():
-            self.btn_max.setText("❐") # Restore icon
+            self.btn_max.setText(DesignManager.Icons.RESTORE) # Restore icon
             self.btn_max.setToolTip("Restore")
         else:
-            self.btn_max.setText("□") # Maximize icon
+            self.btn_max.setText(DesignManager.Icons.MAXIMIZE) # Maximize icon
             self.btn_max.setToolTip("Maximize")
             
     def set_title(self, title):

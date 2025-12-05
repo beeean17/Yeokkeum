@@ -25,6 +25,7 @@ from backend.tab_manager import TabManager
 from backend.session_manager import SessionManager
 from backend.file_manager import FileManager
 from utils.theme_manager import ThemeManager
+from utils.design_manager import DesignManager
 from .title_bar import TitleBar
 from .settings_dialog import SettingsDialog
 
@@ -193,6 +194,11 @@ class MainWindow(QMainWindow):
         webview = self.webview_cache.get(tab_id)
         if webview:
             self.update_webview_theme(webview, self.theme_manager.get_current_theme_data())
+            
+            # Inject icons
+            import json
+            icons_json = json.dumps(DesignManager.get_web_icons())
+            webview.page().runJavaScript(f"if(window.updateIcons) window.updateIcons({icons_json});")
 
         # Get tab info
         tab = self.tab_manager.get_tab(tab_id)

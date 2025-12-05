@@ -5,12 +5,14 @@ Settings Dialog
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
                              QComboBox, QPushButton, QGroupBox, QFormLayout)
 from PyQt6.QtCore import Qt
+from utils.design_manager import DesignManager
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None, theme_manager=None):
         super().__init__(parent)
         self.theme_manager = theme_manager
         self.setWindowTitle("Settings")
+        self.setFont(DesignManager.get_font("body"))
         self.setFixedSize(400, 300)
         self.setModal(True)
         
