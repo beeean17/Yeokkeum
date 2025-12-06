@@ -231,11 +231,53 @@ class BackendAPI(QObject):
 
     @pyqtSlot()
     def new_file(self):
-        """Create a new tab with empty content"""
+        """Create a new file by immediately showing Save dialog"""
         try:
-            # Create new tab
-            self.main_window.create_new_tab()
-            logger.info("New file tab created")
+            # Get default directory from active tab or home directory
+            default_dir = ""
+            active_tab = self.main_window.tab_manager.get_active_tab()
+            if active_tab and active_tab.file_path:
+                default_dir = str(active_tab.file_path.parent)
+            else:
+                default_dir = str(Path.home())
+
+            # Show Save dialog immediately
+            file_path, _ = QFileDialog.getSaveFileName(
+                self.main_window,
+                "새 파일 저장",
+                str(Path(default_dir) / "untitled.md"),
+                "Markdown Files (*.md);;Text Files (*.txt);;All Files (*.*)"
+            )
+
+            if not file_path:
+                # User cancelled - don't create tab
+                logger.info("New file cancelled by user")
+                return
+
+            # Create empty file at the location
+            try:
+                Path(file_path).touch()
+                logger.info(f"Empty file created at: {file_path}")
+            except PermissionError:
+                QMessageBox.critical(
+                    self.main_window,
+                    "권한 오류",
+                    "파일을 생성할 권한이 없습니다."
+                )
+                logger.error(f"Permission denied creating file: {file_path}")
+                return
+            except Exception as e:
+                QMessageBox.critical(
+                    self.main_window,
+                    "오류",
+                    f"파일 생성 중 오류가 발생했습니다:\n{str(e)}"
+                )
+                logger.error(f"Error creating file: {e}")
+                return
+
+            # Open the file in a new tab
+            self.main_window.open_file_in_new_tab(file_path)
+            logger.info(f"New file created and opened: {file_path}")
 
         except Exception as e:
             logger.error(f"Error in new_file: {e}")
