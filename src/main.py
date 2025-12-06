@@ -14,6 +14,10 @@ from PyQt6.QtCore import Qt
 # Suppress GTK3 GLib-GIO warnings on Windows (harmless UWP app scanning messages)
 if sys.platform == 'win32':
     os.environ['G_MESSAGES_DEBUG'] = ''
+    # Set AppUserModelID to show correct icon in taskbar
+    import ctypes
+    myappid = 'saekim.editor.1.0' # arbitrary string
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 # Add src directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -38,6 +42,12 @@ def main():
     app.setApplicationName("새김")
     app.setOrganizationName("Saekim")
     app.setApplicationDisplayName("새김 - 마크다운 에디터")
+
+    # Set application icon
+    icon_path = Path(__file__).parent / 'resources' / 'icons' / 'icon.png'
+    if icon_path.exists():
+        from PyQt6.QtGui import QIcon
+        app.setWindowIcon(QIcon(str(icon_path)))
 
     # Create and show main window with empty content
     window = MainWindow(initial_file=None, initial_content="")
