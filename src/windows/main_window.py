@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import QMainWindow, QTabWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
 from PyQt6.QtCore import QUrl, Qt, QFile, QTextStream, QEvent
-from PyQt6.QtGui import QCloseEvent
+from PyQt6.QtGui import QCloseEvent, QShortcut, QKeySequence
 
 from .menu_bar import MenuBar
 from .toolbar import ToolBar
@@ -95,6 +95,15 @@ class MainWindow(QMainWindow):
                 self.setContentsMargins(0, 0, 0, 0)
                 
         super().changeEvent(event)
+
+    def resizeEvent(self, event):
+        """Handle window resize events"""
+        # Limit file explorer width to 1/3 of window width
+        if hasattr(self, 'file_explorer'):
+            max_width = self.width() // 3
+            self.file_explorer.setMaximumWidth(max_width)
+            
+        super().resizeEvent(event)
 
     def _apply_native_window_styles(self):
         """Apply Windows styles to enable Aero Snap while keeping frameless look"""
@@ -327,7 +336,17 @@ class MainWindow(QMainWindow):
         # Apply tab styling after file explorer is created
         # self.apply_tab_styling()  # Removed in favor of global QSS
 
+        # Setup shortcuts
+        self.shortcut_close_tab = QShortcut(QKeySequence("Ctrl+W"), self)
+        self.shortcut_close_tab.activated.connect(self.close_current_tab)
+
         print("[OK] Tab interface and file explorer initialized")
+
+    def close_current_tab(self):
+        """Close the currently active tab"""
+        index = self.tab_widget.currentIndex()
+        if index != -1:
+            self.on_tab_close_requested(index)
 
     # def apply_tab_styling(self):
     #     """
@@ -457,12 +476,12 @@ class MainWindow(QMainWindow):
         self.title_bar.toggle_sidebar.connect(self.toggle_file_explorer)
         self.title_bar.settings_requested.connect(self.show_settings)
 
-        # Connect FileExplorer signals
-        self.file_explorer.new_file_requested.connect(self.backend.new_file)
-        self.file_explorer.open_folder_requested.connect(self.open_folder_dialog)
-        self.file_explorer.import_md_requested.connect(self.backend.open_file_dialog)
-        self.file_explorer.import_pdf_requested.connect(self.import_from_pdf)
-        self.file_explorer.export_pdf_requested.connect(self.export_pdf)
+        # Connect TitleBar signals for file operations
+        self.title_bar.new_file_requested.connect(self.backend.new_file)
+        self.title_bar.open_folder_requested.connect(self.open_folder_dialog)
+        self.title_bar.import_md_requested.connect(self.backend.open_file_dialog)
+        self.title_bar.import_pdf_requested.connect(self.import_from_pdf)
+        self.title_bar.export_pdf_requested.connect(self.export_pdf)
 
         print("[OK] Custom title bar and file explorer signals connected")
 

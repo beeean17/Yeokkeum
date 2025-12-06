@@ -2,7 +2,7 @@
 Custom Title Bar Widget
 """
 
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton, QFrame
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton, QFrame, QMenu
 from PyQt6.QtCore import Qt, pyqtSignal
 from utils.design_manager import DesignManager
 
@@ -18,6 +18,11 @@ class TitleBar(QFrame):
     # Signals
     toggle_sidebar = pyqtSignal()
     settings_requested = pyqtSignal()
+    new_file_requested = pyqtSignal()
+    open_folder_requested = pyqtSignal()
+    import_md_requested = pyqtSignal()
+    import_pdf_requested = pyqtSignal()
+    export_pdf_requested = pyqtSignal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -56,6 +61,67 @@ class TitleBar(QFrame):
         self.btn_settings.clicked.connect(self.settings_requested.emit)
         self.btn_settings.setObjectName("TitleBarButton")
         layout.addWidget(self.btn_settings)
+
+        # --- File Operations ---
+        # New File Button
+        icon, text = DesignManager.get_icon_data(DesignManager.Icons.NEW_FILE)
+        self.btn_new_file = QPushButton(text)
+        if icon:
+            self.btn_new_file.setIcon(icon)
+        self.btn_new_file.setFixedSize(26, 26)
+        self.btn_new_file.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_new_file.setToolTip("New File")
+        self.btn_new_file.clicked.connect(self.new_file_requested.emit)
+        self.btn_new_file.setObjectName("TitleBarButton")
+        layout.addWidget(self.btn_new_file)
+
+        # Open Folder Button
+        icon, text = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FOLDER)
+        self.btn_open_folder = QPushButton(text)
+        if icon:
+            self.btn_open_folder.setIcon(icon)
+        self.btn_open_folder.setFixedSize(26, 26)
+        self.btn_open_folder.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_open_folder.setToolTip("Open Folder")
+        self.btn_open_folder.clicked.connect(self.open_folder_requested.emit)
+        self.btn_open_folder.setObjectName("TitleBarButton")
+        layout.addWidget(self.btn_open_folder)
+
+        # Open Markdown Button
+        icon, text = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FILE)
+        self.btn_open_md = QPushButton(text)
+        if icon:
+            self.btn_open_md.setIcon(icon)
+        self.btn_open_md.setFixedSize(26, 26)
+        self.btn_open_md.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_open_md.setToolTip("Open Markdown")
+        self.btn_open_md.clicked.connect(self.import_md_requested.emit)
+        self.btn_open_md.setObjectName("TitleBarButton")
+        layout.addWidget(self.btn_open_md)
+
+        # Import PDF Button
+        icon, text = DesignManager.get_icon_data(DesignManager.Icons.IMPORT)
+        self.btn_import_pdf = QPushButton(text)
+        if icon:
+            self.btn_import_pdf.setIcon(icon)
+        self.btn_import_pdf.setFixedSize(26, 26)
+        self.btn_import_pdf.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_import_pdf.setToolTip("Import PDF")
+        self.btn_import_pdf.clicked.connect(self.import_pdf_requested.emit)
+        self.btn_import_pdf.setObjectName("TitleBarButton")
+        layout.addWidget(self.btn_import_pdf)
+
+        # Export PDF Button
+        icon, text = DesignManager.get_icon_data(DesignManager.Icons.EXPORT)
+        self.btn_export_pdf = QPushButton(text)
+        if icon:
+            self.btn_export_pdf.setIcon(icon)
+        self.btn_export_pdf.setFixedSize(26, 26)
+        self.btn_export_pdf.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_export_pdf.setToolTip("Export PDF")
+        self.btn_export_pdf.clicked.connect(self.export_pdf_requested.emit)
+        self.btn_export_pdf.setObjectName("TitleBarButton")
+        layout.addWidget(self.btn_export_pdf)
 
         # --- Center: Title ---
         self.title_label = QLabel("Saekim")
@@ -194,6 +260,22 @@ class TitleBar(QFrame):
         # Settings
         icon, _ = DesignManager.get_icon_data(DesignManager.Icons.SETTINGS, color)
         if icon: self.btn_settings.setIcon(icon)
+
+        # File Operations
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.NEW_FILE, color)
+        if icon: self.btn_new_file.setIcon(icon)
+        
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FOLDER, color)
+        if icon: self.btn_open_folder.setIcon(icon)
+        
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FILE, color)
+        if icon: self.btn_open_md.setIcon(icon)
+        
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.IMPORT, color)
+        if icon: self.btn_import_pdf.setIcon(icon)
+
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.EXPORT, color)
+        if icon: self.btn_export_pdf.setIcon(icon)
         
         # Window Controls
         icon, _ = DesignManager.get_icon_data(DesignManager.Icons.MINIMIZE, color)
