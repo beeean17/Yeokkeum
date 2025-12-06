@@ -19,11 +19,6 @@ class FileExplorer(QDockWidget):
     file_double_clicked = pyqtSignal(str)  # file_path
     
     # New signals for UI actions
-    new_file_requested = pyqtSignal()
-    open_folder_requested = pyqtSignal()
-    import_md_requested = pyqtSignal()
-    import_pdf_requested = pyqtSignal()
-    export_pdf_requested = pyqtSignal()
     settings_requested = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -54,51 +49,9 @@ class FileExplorer(QDockWidget):
         header_layout.setContentsMargins(0, 0, 0, 0)
         header_layout.setSpacing(2)
         
-        # 1. File Actions Row
-        actions_layout = QHBoxLayout()
-        actions_layout.setContentsMargins(5, 5, 5, 0)
+        # 1. File Actions Row - Removed (Moved to Title Bar)
         
-        # New File Button
-        icon, text = DesignManager.get_icon_data(DesignManager.Icons.NEW_FILE)
-        self.btn_new_file = QPushButton(text)
-        if icon:
-            self.btn_new_file.setIcon(icon)
-        self.btn_new_file.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_new_file.setToolTip("New File")
-        self.btn_new_file.clicked.connect(self.new_file_requested.emit)
-        actions_layout.addWidget(self.btn_new_file)
-        
-        # Open Folder Button
-        icon, text = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FOLDER)
-        self.btn_open_folder = QPushButton(text)
-        if icon:
-            self.btn_open_folder.setIcon(icon)
-        self.btn_open_folder.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_open_folder.setToolTip("Open Folder")
-        self.btn_open_folder.setFixedSize(30, 24)
-        self.btn_open_folder.clicked.connect(self.open_folder_requested.emit)
-        actions_layout.addWidget(self.btn_open_folder)
-        
-        # Import/Export Menu Button
-        icon, text = DesignManager.get_icon_data(DesignManager.Icons.IMPORT_EXPORT)
-        self.btn_import_export = QPushButton(text)
-        if icon:
-            self.btn_import_export.setIcon(icon)
-        self.btn_import_export.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_import_export.setToolTip("Import/Export")
-        self.btn_import_export.setFixedSize(30, 24)
-        
-        # Create menu
-        self.menu_import_export = QMenu(self)
-        self.menu_import_export.addAction("Open Markdown...", self.import_md_requested.emit)
-        self.menu_import_export.addAction("Import PDF...", self.import_pdf_requested.emit)
-        self.menu_import_export.addSeparator()
-        self.menu_import_export.addAction("Export to PDF", self.export_pdf_requested.emit)
-        self.btn_import_export.setMenu(self.menu_import_export)
-        
-        actions_layout.addWidget(self.btn_import_export)
-        
-        header_layout.addLayout(actions_layout)
+        # 2. Path Label
 
         # 2. Path Label
         self.path_label = QLabel()
@@ -327,15 +280,7 @@ class FileExplorer(QDockWidget):
 
     def update_icons(self, color):
         """Update icons with new color"""
-        # Header buttons
-        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.NEW_FILE, color)
-        if icon: self.btn_new_file.setIcon(icon)
-        
-        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FOLDER, color)
-        if icon: self.btn_open_folder.setIcon(icon)
-        
-        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.IMPORT_EXPORT, color)
-        if icon: self.btn_import_export.setIcon(icon)
+        # Header buttons - Removed
         
         # Navigation buttons
         icon, _ = DesignManager.get_icon_data(DesignManager.Icons.BACK, color)
