@@ -71,32 +71,6 @@
 
         <!-- Main Area with Toolbar and Split View -->
         <div class="main-area">
-            <!-- Toolbar (Global for Editor) -->
-            <div id="main-toolbar" class="toolbar">
-                <div class="toolbar-group left">
-                    <button class="btn-icon" id="btn-undo" title="실행 취소 (Ctrl+Z)">↩️</button>
-                    <button class="btn-icon" id="btn-redo" title="다시 실행 (Ctrl+Y)">↪️</button>
-                </div>
-                <div class="toolbar-divider"></div>
-                <div class="toolbar-group center">
-                    <button class="btn-icon" id="btn-bold" title="굵게 (Ctrl+B)"><b>B</b></button>
-                    <button class="btn-icon" id="btn-italic" title="기울임 (Ctrl+I)"><i>I</i></button>
-                    <button class="btn-icon" id="btn-heading" title="제목 (Ctrl+H)">H1</button>
-                    <button class="btn-icon" id="btn-link" title="링크 (Ctrl+K)">🔗</button>
-                    <button class="btn-icon" id="btn-insert-image" title="이미지 삽입">🖼️</button>
-                    <button class="btn-icon" id="btn-insert-table" title="표 삽입">📋</button>
-                    <button class="btn-icon" id="btn-code-block" title="코드 블록">}</button>
-                </div>
-                <div class="toolbar-divider"></div>
-                <div class="toolbar-group right">
-                    <div class="view-toggle">
-                        <button class="btn-toggle active" id="btn-view-edit" title="편집 모드">Edit</button>
-                        <button class="btn-toggle" id="btn-view-split" title="분할 모드">Split</button>
-                        <button class="btn-toggle" id="btn-view-preview" title="미리보기 모드">View</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Content Area -->
             <div class="content-area">
                 <div class="split-container" id="split-container">
@@ -105,6 +79,10 @@
                         <div class="pane-header">
                             <span class="pane-title">편집기</span>
                             <div class="pane-actions">
+                                <button class="btn-icon" id="btn-undo" title="실행 취소 (Ctrl+Z)">↩️</button>
+                                <button class="btn-icon" id="btn-redo" title="다시 실행 (Ctrl+Y)">↪️</button>
+                                <button class="btn-icon" id="btn-insert-image" title="이미지 삽입">🖼️</button>
+                                <button class="btn-icon" id="btn-insert-table" title="표 삽입">📋</button>
                                 <button class="btn-icon btn-helper" id="btn-markdown-helper"
                                     title="마크다운 문법 도우미 (Ctrl+Shift+D)">
                                     <span class="helper-icon">MD</span>
@@ -122,9 +100,6 @@
                                 </button>
                                 <button class="btn-icon" id="btn-font-increase" title="글꼴 확대 (Ctrl/Cmd + +)">
                                     A+
-                                </button>
-                                <button class="btn-icon" id="btn-word-count" title="단어 수">
-                                    <span id="word-count">0 단어</span>
                                 </button>
                             </div>
                         </div>

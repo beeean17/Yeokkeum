@@ -27,7 +27,7 @@ class FileExplorer(QDockWidget):
     settings_requested = pyqtSignal()
 
     def __init__(self, parent=None):
-        super().__init__("파일 탐색기", parent)
+        super().__init__("File Explorer", parent)
 
         # Set dock properties
         self.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea |
@@ -182,23 +182,6 @@ class FileExplorer(QDockWidget):
 
         # Add tree to layout
         layout.addWidget(self.tree)
-        
-        # --- Footer Section ---
-        footer_widget = QWidget()
-        footer_layout = QHBoxLayout(footer_widget)
-        footer_layout.setContentsMargins(5, 5, 5, 5)
-        
-        icon, text = DesignManager.get_icon_data(DesignManager.Icons.SETTINGS)
-        self.btn_settings = QPushButton(text)
-        if icon:
-            self.btn_settings.setIcon(icon)
-        self.btn_settings.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_settings.setFlat(True)
-        self.btn_settings.clicked.connect(self.settings_requested.emit)
-        footer_layout.addWidget(self.btn_settings)
-        footer_layout.addStretch()
-        
-        layout.addWidget(footer_widget)
 
         # Set main widget
         self.setWidget(main_widget)
@@ -342,10 +325,25 @@ class FileExplorer(QDockWidget):
         self.back_button.setEnabled(self.history_index > 0)
         self.forward_button.setEnabled(self.history_index < len(self.path_history) - 1)
 
-    # def update_path_label_style(self):
-    #     """
-    #     Update path label styling to match tree view colors
-    #     """
-    #     # Removed in favor of global QSS
-    #     pass
+    def update_icons(self, color):
+        """Update icons with new color"""
+        # Header buttons
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.NEW_FILE, color)
+        if icon: self.btn_new_file.setIcon(icon)
+        
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FOLDER, color)
+        if icon: self.btn_open_folder.setIcon(icon)
+        
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.IMPORT_EXPORT, color)
+        if icon: self.btn_import_export.setIcon(icon)
+        
+        # Navigation buttons
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.BACK, color)
+        if icon: self.back_button.setIcon(icon)
+        
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.FORWARD, color)
+        if icon: self.forward_button.setIcon(icon)
+        
+        icon, _ = DesignManager.get_icon_data(DesignManager.Icons.UP, color)
+        if icon: self.up_button.setIcon(icon)
 

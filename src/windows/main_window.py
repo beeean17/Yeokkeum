@@ -13,7 +13,7 @@ from typing import Dict, Optional
 from PyQt6.QtWidgets import QMainWindow, QTabWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
-from PyQt6.QtCore import QUrl, Qt, QFile, QTextStream
+from PyQt6.QtCore import QUrl, Qt, QFile, QTextStream, QEvent
 from PyQt6.QtGui import QCloseEvent
 
 from .menu_bar import MenuBar
@@ -37,9 +37,20 @@ class MainWindow(QMainWindow):
 
     def __init__(self, initial_file=None, initial_content=None):
         super().__init__()
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        self.setWindowFlags(Qt.WindowType.Window)
         self.setWindowTitle("새김 - 마크다운 에디터")
         self.setGeometry(100, 100, 1200, 800)
+
+        # Windows native event handling setup
+        self._border_width = 5
+        self._title_bar_height = 32
+        
+        # Apply Windows styles for Aero Snap
+        self._apply_native_window_styles()
+
+
+
+
 
         # Store initial file info
         self.initial_file = initial_file
@@ -72,6 +83,178 @@ class MainWindow(QMainWindow):
         
         self.restore_session()
 
+    def changeEvent(self, event):
+        """Handle window state changes to adjust margins"""
+        if event.type() == QEvent.Type.WindowStateChange:
+            if self.windowState() & Qt.WindowState.WindowMaximized:
+                # Add margin when maximized to prevent content from being cut off
+                # Windows usually pushes the window 8px off screen when maximized
+                self.setContentsMargins(8, 8, 8, 8)
+            else:
+                # Remove margin when restored
+                self.setContentsMargins(0, 0, 0, 0)
+                
+        super().changeEvent(event)
+
+    def _apply_native_window_styles(self):
+        """Apply Windows styles to enable Aero Snap while keeping frameless look"""
+        import ctypes
+        from ctypes import wintypes
+        
+        hwnd = self.winId().__int__()
+        
+        # Constants
+        GWL_STYLE = -16
+        WS_CAPTION = 0x00C00000
+        WS_THICKFRAME = 0x00040000
+        SWP_FRAMECHANGED = 0x0020
+        SWP_NOMOVE = 0x0002
+        SWP_NOSIZE = 0x0001
+        SWP_NOZORDER = 0x0004
+        SWP_NOACTIVATE = 0x0010
+        
+        # Get current style
+        style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_STYLE)
+        
+        # Add Caption and ThickFrame styles
+        # These are required for Aero Snap and native resizing
+        style |= WS_CAPTION | WS_THICKFRAME
+        
+        # Set new style
+        ctypes.windll.user32.SetWindowLongW(hwnd, GWL_STYLE, style)
+        
+        # Trigger frame recalculation (WM_NCCALCSIZE)
+        ctypes.windll.user32.SetWindowPos(
+            hwnd, 0, 0, 0, 0, 0,
+            SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE
+        )
+
+    def nativeEvent(self, event_type, message):
+        """Handle Windows native events for resizing and snapping"""
+        try:
+            # Ensure attributes exist (in case called before __init__ completes)
+            if not hasattr(self, '_border_width') or not hasattr(self, '_title_bar_height'):
+                return False, 0
+
+            if event_type == "windows_generic_MSG":
+                import ctypes
+                from ctypes import wintypes
+                from PyQt6.QtGui import QCursor
+                from PyQt6.QtWidgets import QPushButton
+                
+                msg = ctypes.wintypes.MSG.from_address(int(message))
+                
+                # WM_NCCALCSIZE = 0x0083
+                if msg.message == 0x0083:
+                    # If wParam is TRUE, it specifies that the application should indicate 
+                    # which part of the client area contains valid information.
+                    if msg.wParam:
+                        # We return 0 to indicate that the entire window is the client area,
+                        # effectively hiding the native frame and caption.
+                        
+                        # However, when maximized, the window extends beyond the screen boundaries
+                        # to hide the borders. We need to adjust for this.
+                        if self.isMaximized():
+                            # Get monitor info to adjust coordinates
+                            monitor = ctypes.windll.user32.MonitorFromWindow(msg.hWnd, 2) # MONITOR_DEFAULTTONEAREST
+                            
+                            class MONITORINFO(ctypes.Structure):
+                                _fields_ = [
+                                    ("cbSize", ctypes.c_ulong),
+                                    ("rcMonitor", ctypes.wintypes.RECT),
+                                    ("rcWork", ctypes.wintypes.RECT),
+                                    ("dwFlags", ctypes.c_ulong),
+                                ]
+                            
+                            monitor_info = MONITORINFO()
+                            monitor_info.cbSize = ctypes.sizeof(MONITORINFO)
+                            ctypes.windll.user32.GetMonitorInfoW(monitor, ctypes.byref(monitor_info))
+                            
+                            # For now, returning 0 (WVR_REDRAW might be better) works for "fullscreen" client area.
+                            pass
+
+                        return True, 0
+                
+                # WM_NCHITTEST = 0x0084
+                if msg.message == 0x0084:
+                    # Extract mouse coordinates (Global)
+                    x = msg.lParam & 0xFFFF
+                    y = (msg.lParam >> 16) & 0xFFFF
+                    # Handle negative coordinates (multi-monitor)
+                    if y & 0x8000: 
+                        y -= 0x10000 
+                    
+                    # Get window geometry in global coordinates
+                    frame = self.frameGeometry()
+                    
+                    # Determine borders based on global coordinates
+                    # Note: When maximized, we shouldn't allow resizing
+                    if self.isMaximized():
+                        isOnLeft = False
+                        isOnRight = False
+                        isOnTop = False
+                        isOnBottom = False
+                    else:
+                        isOnLeft = x < frame.x() + self._border_width
+                        isOnRight = x >= frame.x() + frame.width() - self._border_width
+                        isOnTop = y < frame.y() + self._border_width
+                        isOnBottom = y >= frame.y() + frame.height() - self._border_width
+                    
+                    # Hit test codes
+                    HTCLIENT = 1
+                    HTCAPTION = 2
+                    HTLEFT = 10
+                    HTRIGHT = 11
+                    HTTOP = 12
+                    HTTOPLEFT = 13
+                    HTTOPRIGHT = 14
+                    HTBOTTOM = 15
+                    HTBOTTOMLEFT = 16
+                    HTBOTTOMRIGHT = 17
+                    
+                    # 1. Corners
+                    if isOnLeft and isOnTop: return True, HTTOPLEFT
+                    if isOnRight and isOnTop: return True, HTTOPRIGHT
+                    if isOnLeft and isOnBottom: return True, HTBOTTOMLEFT
+                    if isOnRight and isOnBottom: return True, HTBOTTOMRIGHT
+                        
+                    # 2. Edges
+                    if isOnLeft: return True, HTLEFT
+                    if isOnRight: return True, HTRIGHT
+                    if isOnTop: return True, HTTOP
+                    if isOnBottom: return True, HTBOTTOM
+                        
+                    # 3. Title bar (Caption)
+                    # Check if y is within title bar height from top of frame
+                    if y < frame.y() + self._title_bar_height and not isOnTop:
+                        # Check for child widgets (buttons)
+                        # We need local coordinates for childAt
+                        # Use QCursor.pos() for reliable global position
+                        global_pos = QCursor.pos()
+                        local_pos = self.mapFromGlobal(global_pos)
+                        
+                        child = self.childAt(local_pos)
+                        if child:
+                            # If hovering over a button, let it handle the event
+                            curr = child
+                            while curr and curr != self:
+                                if isinstance(curr, QPushButton):
+                                    return True, HTCLIENT
+                                curr = curr.parent()
+                        
+                        return True, HTCAPTION
+                        
+                    return True, HTCLIENT
+                    
+        except Exception as e:
+            # Print error but don't crash
+            import traceback
+            traceback.print_exc()
+            print(f"Native event error: {e}")
+            pass
+            
+        return False, 0
+
     def apply_theme(self, theme_name: str):
         """Apply theme using ThemeManager"""
         theme_data = self.theme_manager.apply_theme(theme_name)
@@ -79,10 +262,24 @@ class MainWindow(QMainWindow):
         # Save preference
         self.theme_manager.save_preference()
         
+        # Determine icon color
+        icon_color = "#D0D0D0" if theme_data.get('is_dark', True) else "#555555"
+        
+        # Update UI icons
+        if hasattr(self, 'title_bar'):
+            self.title_bar.update_icons(icon_color)
+            
+        if hasattr(self, 'file_explorer'):
+            self.file_explorer.update_icons(icon_color)
+        
         # Update webview if it exists
         if hasattr(self, 'webview_cache'):
             for webview in self.webview_cache.values():
                 self.update_webview_theme(webview, theme_data)
+                # Also update icons in webview
+                import json
+                icons_json = json.dumps(DesignManager.get_web_icons(icon_color))
+                webview.page().runJavaScript(f"if(window.updateIcons) window.updateIcons({icons_json});")
 
     def update_webview_theme(self, webview: QWebEngineView, theme_data: dict):
         """Update theme in a specific webview"""
@@ -197,11 +394,18 @@ class MainWindow(QMainWindow):
         webview = self.webview_cache.get(tab_id)
         if webview:
             self.update_webview_theme(webview, self.theme_manager.get_current_theme_data())
-            
+
             # Inject icons
             import json
-            icons_json = json.dumps(DesignManager.get_web_icons())
+            # Determine icon color
+            theme_data = self.theme_manager.get_current_theme_data()
+            icon_color = "#D0D0D0" if theme_data.get('is_dark', True) else "#555555"
+            icons_json = json.dumps(DesignManager.get_web_icons(icon_color))
             webview.page().runJavaScript(f"if(window.updateIcons) window.updateIcons({icons_json});")
+
+            # Set default view mode to split
+            if hasattr(self, 'title_bar'):
+                self.title_bar.set_view_mode('split')
 
         # Get tab info
         tab = self.tab_manager.get_tab(tab_id)
@@ -248,18 +452,18 @@ class MainWindow(QMainWindow):
         """Setup custom title bar"""
         self.title_bar = TitleBar(self)
         self.setMenuWidget(self.title_bar)
-        
-        # Connect signals
+
+        # Connect title bar signals
         self.title_bar.toggle_sidebar.connect(self.toggle_file_explorer)
-        
+        self.title_bar.settings_requested.connect(self.show_settings)
+
         # Connect FileExplorer signals
         self.file_explorer.new_file_requested.connect(self.backend.new_file)
         self.file_explorer.open_folder_requested.connect(self.open_folder_dialog)
         self.file_explorer.import_md_requested.connect(self.backend.open_file_dialog)
         self.file_explorer.import_pdf_requested.connect(self.import_from_pdf)
         self.file_explorer.export_pdf_requested.connect(self.export_pdf)
-        self.file_explorer.settings_requested.connect(self.show_settings)
-        
+
         print("[OK] Custom title bar and file explorer signals connected")
 
     def open_folder_dialog(self):

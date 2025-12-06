@@ -291,3 +291,7 @@ body {
     color: var(--text-secondary);
     font-size: var(--font-size-lg);
 }
+
+.btn-icon[data-active="true"] img {
+    filter: brightness(0) invert(1);
+}
