@@ -101,8 +101,35 @@ class BackendAPI(QObject):
                 "error": str(e)
             })
 
-    @pyqtSlot(str, result=str)
-    def save_file(self, content: str) -> str:
+    @pyqtSlot()
+    def open_folder_dialog(self):
+        """
+        Open folder dialog and set file explorer root
+        Called from JavaScript
+        """
+        try:
+            # Use active tab's file directory as default path
+            default_dir = ""
+            if self.active_tab and self.active_tab.file_path:
+                default_dir = str(self.active_tab.file_path.parent)
+            elif hasattr(self.main_window, 'file_explorer'):
+                 default_dir = self.main_window.file_explorer.get_current_path()
+
+            folder_path = QFileDialog.getExistingDirectory(
+                self.main_window, 
+                "Open Folder", 
+                default_dir
+            )
+            
+            if folder_path:
+                if hasattr(self.main_window, 'file_explorer'):
+                    self.main_window.file_explorer.set_root_path(folder_path)
+                    if self.main_window.file_explorer.isHidden():
+                        self.main_window.file_explorer.show()
+                logger.info(f"Folder opened: {folder_path}")
+
+        except Exception as e:
+            logger.error(f"Error in open_folder_dialog: {e}")
         """
         Save content to the active tab's file
 

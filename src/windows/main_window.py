@@ -8,11 +8,13 @@ Defines the main application window with:
 - Backend connection
 """
 
+import json
 from pathlib import Path
 from typing import Dict, Optional
 from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QStackedWidget, QWidget,
                               QVBoxLayout, QHBoxLayout, QLabel, QPushButton)
 from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEngineSettings
 from PyQt6.QtWebChannel import QWebChannel
 from PyQt6.QtCore import QUrl, Qt, QFile, QTextStream, QEvent
 from PyQt6.QtGui import QCloseEvent, QShortcut, QKeySequence, QFont
@@ -70,8 +72,8 @@ class MainWindow(QMainWindow):
         # Shared QWebChannel for all tabs
         self.channel = QWebChannel()
 
-        self.setup_ui()
         self.setup_backend()
+        self.setup_ui()
         
         # Initialize theme manager before menu bar
         self.theme_manager = ThemeManager(self.session_manager.session_file)
@@ -268,20 +270,24 @@ class MainWindow(QMainWindow):
     def apply_theme(self, theme_name: str):
         """Apply theme using ThemeManager"""
         theme_data = self.theme_manager.apply_theme(theme_name)
-        
+
         # Save preference
         self.theme_manager.save_preference()
-        
+
         # Determine icon color
         icon_color = "#D0D0D0" if theme_data.get('is_dark', True) else "#555555"
-        
+
         # Update UI icons
         if hasattr(self, 'title_bar'):
             self.title_bar.update_icons(icon_color)
-            
+
         if hasattr(self, 'file_explorer'):
             self.file_explorer.update_icons(icon_color)
-        
+
+        # Update welcome screen styling
+        if hasattr(self, 'welcome_widget'):
+            self.update_welcome_screen_theme(theme_data, icon_color)
+
         # Update webview if it exists
         if hasattr(self, 'webview_cache'):
             for webview in self.webview_cache.values():
@@ -290,6 +296,32 @@ class MainWindow(QMainWindow):
                 import json
                 icons_json = json.dumps(DesignManager.get_web_icons(icon_color))
                 webview.page().runJavaScript(f"if(window.updateIcons) window.updateIcons({icons_json});")
+
+    def update_welcome_screen_theme(self, theme_data: dict, icon_color: str):
+        """Update welcome screen styling via JS"""
+        if hasattr(self, 'welcome_widget') and isinstance(self.welcome_widget, QWebEngineView):
+            # Pass theme data to JS
+            js_code = f"if (typeof updateTheme === 'function') {{ updateTheme({json.dumps(theme_data)}); }}"
+            self.welcome_widget.page().runJavaScript(js_code)
+            
+            # Pass icons to JS
+            icons = {
+                'open_folder': DesignManager.Icons.OPEN_FOLDER.replace('{color}', '#2E3440' if theme_data.get('is_dark') else '#FFFFFF'), # Primary button text color
+                'open_file': DesignManager.Icons.OPEN_FILE.replace('{color}', icon_color),
+                'new_file': DesignManager.Icons.NEW_FILE.replace('{color}', icon_color)
+            }
+            # Adjust icon color for primary button (Open Folder)
+            # The primary button usually has a contrasting text color (e.g. white or dark grey)
+            # For now, let's use the icon_color for secondary buttons, and a specific color for primary
+            
+            # Re-evaluating colors based on theme
+            is_dark = theme_data.get('is_dark', True)
+            primary_btn_text_color = "#2E3440" if is_dark else "#FFFFFF" # Based on CSS vars
+            
+            icons['open_folder'] = DesignManager.Icons.OPEN_FOLDER.replace('{color}', primary_btn_text_color)
+            
+            js_code_icons = f"if (typeof updateIcons === 'function') {{ updateIcons({json.dumps(icons)}); }}"
+            self.welcome_widget.page().runJavaScript(js_code_icons)
 
     def update_webview_theme(self, webview: QWebEngineView, theme_data: dict):
         """Update theme in a specific webview"""
@@ -357,70 +389,67 @@ class MainWindow(QMainWindow):
         print("[OK] Tab interface and file explorer initialized")
 
     def _create_welcome_widget(self):
-        """Create welcome screen widget with Qt widgets"""
-        widget = QWidget()
-        widget.setObjectName("WelcomeScreen")
-
-        # Main layout
-        main_layout = QVBoxLayout(widget)
-        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        # Container for welcome card
-        card_widget = QWidget()
-        card_widget.setObjectName("WelcomeCard")
-        card_widget.setFixedWidth(500)
+        """Create welcome screen using QWebEngineView"""
+        # Create webview
+        webview = QWebEngineView()
+        webview.setObjectName("WelcomeScreenWebView")
+        
+        # Configure page settings
+        settings = webview.settings()
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+        
+        # Setup QWebChannel
+        channel = QWebChannel(webview.page())
+        channel.registerObject('backend', self.backend)
+        webview.page().setWebChannel(channel)
+        
+        # Load HTML
+        welcome_html_path = self.ui_path.parent / 'welcome.html'
+        if welcome_html_path.exists():
+            webview.setUrl(QUrl.fromLocalFile(str(welcome_html_path)))
+        else:
+            print(f"Error: Welcome HTML not found at {welcome_html_path}")
+            
+        return webview
+        card_widget.setFixedWidth(300)
         card_layout = QVBoxLayout(card_widget)
         card_layout.setSpacing(30)
         card_layout.setContentsMargins(40, 50, 40, 50)
 
-        # Title
-        title_label = QLabel("새김")
-        title_label.setObjectName("WelcomeTitle")
-        title_font = QFont()
-        title_font.setPointSize(32)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        card_layout.addWidget(title_label)
-
-        # Subtitle
-        subtitle_label = QLabel("Markdown Editor")
-        subtitle_label.setObjectName("WelcomeSubtitle")
-        subtitle_font = QFont()
-        subtitle_font.setPointSize(12)
-        subtitle_label.setFont(subtitle_font)
-        subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        card_layout.addWidget(subtitle_label)
-
-        # Message
-        message_label = QLabel("시작하려면 폴더 또는 파일을 열어주세요")
-        message_label.setObjectName("WelcomeMessage")
-        message_font = QFont()
-        message_font.setPointSize(11)
-        message_label.setFont(message_font)
-        message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        card_layout.addWidget(message_label)
+        # Message only - Removed as per user request
+        # message_label = QLabel("파일을 왼쪽의 File explorer나 아래의 버튼으로 열어서 시작하세요")
+        # ...
 
         # Buttons container
         buttons_layout = QVBoxLayout()
         buttons_layout.setSpacing(12)
 
         # Open Folder button
-        self.welcome_btn_open_folder = QPushButton("📁  폴더 열기")
+        folder_icon, folder_text = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FOLDER)
+        self.welcome_btn_open_folder = QPushButton("폴더 열기")
+        if folder_icon:
+            self.welcome_btn_open_folder.setIcon(folder_icon)
         self.welcome_btn_open_folder.setObjectName("WelcomeButtonPrimary")
         self.welcome_btn_open_folder.setMinimumHeight(50)
         self.welcome_btn_open_folder.setCursor(Qt.CursorShape.PointingHandCursor)
         buttons_layout.addWidget(self.welcome_btn_open_folder)
 
         # Open File button
-        self.welcome_btn_open_file = QPushButton("📄  파일 열기")
+        file_icon, file_text = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FILE)
+        self.welcome_btn_open_file = QPushButton("파일 열기")
+        if file_icon:
+            self.welcome_btn_open_file.setIcon(file_icon)
         self.welcome_btn_open_file.setObjectName("WelcomeButtonPrimary")
         self.welcome_btn_open_file.setMinimumHeight(50)
         self.welcome_btn_open_file.setCursor(Qt.CursorShape.PointingHandCursor)
         buttons_layout.addWidget(self.welcome_btn_open_file)
 
         # New File button
-        self.welcome_btn_new_file = QPushButton("✨  새 파일")
+        new_icon, new_text = DesignManager.get_icon_data(DesignManager.Icons.NEW_FILE)
+        self.welcome_btn_new_file = QPushButton("새 파일")
+        if new_icon:
+            self.welcome_btn_new_file.setIcon(new_icon)
         self.welcome_btn_new_file.setObjectName("WelcomeButtonSecondary")
         self.welcome_btn_new_file.setMinimumHeight(50)
         self.welcome_btn_new_file.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -431,50 +460,7 @@ class MainWindow(QMainWindow):
         # Add card to main layout
         main_layout.addWidget(card_widget, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        # Apply styling
-        widget.setStyleSheet("""
-            QWidget#WelcomeScreen {
-                background-color: #2e3440;
-            }
-            QWidget#WelcomeCard {
-                background-color: #3b4252;
-                border-radius: 12px;
-            }
-            QLabel#WelcomeTitle {
-                color: #eceff4;
-            }
-            QLabel#WelcomeSubtitle {
-                color: #88c0d0;
-            }
-            QLabel#WelcomeMessage {
-                color: #d8dee9;
-            }
-            QPushButton#WelcomeButtonPrimary {
-                background-color: #5e81ac;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 500;
-                padding: 12px;
-            }
-            QPushButton#WelcomeButtonPrimary:hover {
-                background-color: #81a1c1;
-            }
-            QPushButton#WelcomeButtonSecondary {
-                background-color: #434c5e;
-                color: #eceff4;
-                border: none;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 500;
-                padding: 12px;
-            }
-            QPushButton#WelcomeButtonSecondary:hover {
-                background-color: #4c566a;
-            }
-        """)
-
+        # Styling will be applied dynamically based on theme
         return widget
 
     def close_current_tab(self):
@@ -626,6 +612,9 @@ class MainWindow(QMainWindow):
         folder_path = QFileDialog.getExistingDirectory(self, "Open Folder", self.file_explorer.get_current_path())
         if folder_path:
             self.file_explorer.set_root_path(folder_path)
+            # Show file explorer if it was hidden
+            if self.file_explorer.isHidden():
+                self.file_explorer.show()
 
     def import_from_pdf(self):
         """Trigger PDF import in JS"""
@@ -909,36 +898,15 @@ class MainWindow(QMainWindow):
             show_folder_button: Show "Open Folder" button (True for first run, False if explorer path exists)
             hide_explorer: Hide file explorer completely (True for first run)
         """
-        # Connect welcome screen buttons if not already connected
-        if hasattr(self, 'backend'):
-            try:
-                self.welcome_btn_open_folder.clicked.disconnect()
-            except:
-                pass
-            try:
-                self.welcome_btn_open_file.clicked.disconnect()
-            except:
-                pass
-            try:
-                self.welcome_btn_new_file.clicked.disconnect()
-            except:
-                pass
+        # Hide file explorer if requested
+        if hide_explorer:
+            self.file_explorer.hide()
 
-            self.welcome_btn_open_folder.clicked.connect(self.open_folder_dialog)
-            self.welcome_btn_open_file.clicked.connect(self.backend.open_file_dialog)
-            self.welcome_btn_new_file.clicked.connect(self.backend.new_file)
-
-        # Show/hide folder button based on parameter
-        self.welcome_btn_open_folder.setVisible(show_folder_button)
-
-        # Update message based on context
-        for widget in self.welcome_widget.findChildren(QLabel):
-            if widget.objectName() == "WelcomeMessage":
-                if show_folder_button:
-                    widget.setText("시작하려면 폴더 또는 파일을 열어주세요")
-                else:
-                    widget.setText("파일을 열어 편집을 시작하세요")
-                break
+        # Apply current theme to welcome screen
+        if hasattr(self, 'theme_manager'):
+            theme_data = self.theme_manager.THEMES.get(self.theme_manager.current_theme, {})
+            icon_color = "#D0D0D0" if theme_data.get('is_dark', True) else "#555555"
+            self.update_welcome_screen_theme(theme_data, icon_color)
 
         # Switch to welcome screen
         self.stacked_widget.setCurrentWidget(self.welcome_widget)

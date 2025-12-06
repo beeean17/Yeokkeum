@@ -1,153 +1,88 @@
-/* Welcome Screen Styles */
+:root {
+    --bg-color: #2E3440;
+    --card-bg: transparent;
+    --text-color: #ECEFF4;
+    --btn-primary-bg: #88C0D0;
+    --btn-primary-text: #2E3440;
+    --btn-secondary-bg: #434C5E;
+    --btn-secondary-text: #ECEFF4;
+}
 
 body {
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
-    background: var(--bg-primary, #2e3440);
-    color: var(--text-primary, #d8dee9);
+    background-color: var(--bg-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    user-select: none;
     overflow: hidden;
 }
 
-.welcome-container {
+.welcome-screen {
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    padding: 2rem;
 }
 
 .welcome-card {
-    background: var(--bg-secondary, #3b4252);
+    background-color: var(--card-bg);
+    width: 300px;
+    padding: 40px;
     border-radius: 12px;
-    padding: 3rem 2.5rem;
-    max-width: 500px;
-    width: 100%;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     text-align: center;
 }
 
-.welcome-header {
-    margin-bottom: 2.5rem;
-}
-
-.welcome-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem 0;
-    color: var(--text-primary, #eceff4);
-    letter-spacing: -0.5px;
-}
-
-.welcome-subtitle {
-    font-size: 1rem;
-    margin: 0;
-    color: var(--text-secondary, #88c0d0);
-    font-weight: 400;
-    opacity: 0.9;
-}
-
-.welcome-content {
+.button-container {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 12px;
 }
 
-.welcome-message {
-    font-size: 1.125rem;
-    color: var(--text-secondary, #d8dee9);
-    margin: 0;
-    opacity: 0.85;
-}
-
-.welcome-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.welcome-button {
+.btn {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    padding: 1rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: inherit;
+    gap: 8px;
 }
 
-.welcome-button.primary {
-    background: var(--accent-primary, #5e81ac);
-    color: white;
+.btn:hover {
+    filter: brightness(1.1);
 }
 
-.welcome-button.primary:hover {
-    background: var(--accent-hover, #81a1c1);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(94, 129, 172, 0.3);
+.btn:active {
+    filter: brightness(0.9);
 }
 
-.welcome-button.primary:active {
-    transform: translateY(0);
+.btn-primary {
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
 }
 
-.welcome-button.secondary {
-    background: var(--bg-tertiary, #434c5e);
-    color: var(--text-primary, #eceff4);
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid var(--btn-primary-bg);
+    /* Use primary color for border */
+    color: var(--text-color);
+    opacity: 0.8;
 }
 
-.welcome-button.secondary:hover {
-    background: var(--bg-hover, #4c566a);
-    transform: translateY(-1px);
+.btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    opacity: 1;
 }
 
-.welcome-button.secondary:active {
-    transform: translateY(0);
-}
-
-.button-icon {
-    font-size: 1.25rem;
-    line-height: 1;
-}
-
-.button-text {
-    font-size: 1rem;
-}
-
-/* Light theme support */
-@media (prefers-color-scheme: light) {
-    body {
-        --bg-primary: #eceff4;
-        --bg-secondary: #ffffff;
-        --bg-tertiary: #e5e9f0;
-        --bg-hover: #d8dee9;
-        --text-primary: #2e3440;
-        --text-secondary: #4c566a;
-        --accent-primary: #5e81ac;
-        --accent-hover: #81a1c1;
-    }
-
-    .welcome-card {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    }
-}
-
-/* Responsive design */
-@media (max-width: 600px) {
-    .welcome-card {
-        padding: 2rem 1.5rem;
-    }
-
-    .welcome-title {
-        font-size: 2rem;
-    }
-
-    .welcome-message {
-        font-size: 1rem;
-    }
+.icon {
+    font-size: 16px;
 }
