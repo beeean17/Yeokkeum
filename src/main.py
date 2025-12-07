@@ -28,7 +28,17 @@ def main():
     logger = setup_logger()
     logger.info("새김 마크다운 에디터 시작")
 
-    # Enable high DPI scaling
+    # Configure DPI awareness for Windows
+    if sys.platform == 'win32':
+        try:
+            from ctypes import windll
+            # Set DPI awareness (Windows 10 version 1607+)
+            windll.shcore.SetProcessDpiAwareness(2)  # PROCESS_PER_MONITOR_DPI_AWARE
+        except Exception as e:
+            logger.warning(f"DPI awareness 설정 실패: {e}")
+
+    # Enable high DPI scaling BEFORE creating QApplication
+    # PyQt6 has high DPI support enabled by default
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )

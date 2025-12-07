@@ -189,14 +189,13 @@ class MainWindow(QMainWindow):
                 
                 # WM_NCHITTEST = 0x0084
                 if msg.message == 0x0084:
-                    # Extract mouse coordinates (Global)
-                    x = msg.lParam & 0xFFFF
-                    y = (msg.lParam >> 16) & 0xFFFF
-                    # Handle negative coordinates (multi-monitor)
-                    if y & 0x8000: 
-                        y -= 0x10000 
-                    
-                    # Get window geometry in global coordinates
+                    # Use QCursor.pos() for DPI-aware coordinates
+                    # msg.lParam provides physical pixels, but Qt works with logical pixels
+                    global_pos = QCursor.pos()
+                    x = global_pos.x()
+                    y = global_pos.y()
+
+                    # Get window geometry in global coordinates (logical pixels)
                     frame = self.frameGeometry()
                     
                     # Determine borders based on global coordinates
