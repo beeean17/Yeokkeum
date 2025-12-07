@@ -104,6 +104,23 @@ QTabBar::close-button:pressed {
     background-color: #BDBDBD;
 }
 
+QTabBar::scroller {
+    /* Allow scroller to size itself */
+    width: 48px;
+}
+
+QTabBar QToolButton {
+    background-color: #F6F8FA;
+    border: 1px solid #D0D7DE;
+    border-radius: 4px;
+    margin: 1px;
+    padding: 2px;
+}
+
+QTabBar QToolButton:hover {
+    background-color: #EAEEF2;
+}
+
 /* Toolbar */
 QToolBar {
     background-color: #F6F8FA;

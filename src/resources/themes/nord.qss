@@ -101,6 +101,26 @@ QTabBar::close-button:pressed {
     background-color: #434C5E;
 }
 
+QTabBar::scroller {
+    /* Allow scroller to size itself */
+    width: 48px; /* Sufficient for two buttons */
+}
+
+QTabBar QToolButton {
+    background-color: #3B4252;
+    border: 1px solid #4C566A;
+    border-radius: 4px;
+    margin: 1px;
+    padding: 2px;
+}
+
+QTabBar QToolButton:hover {
+    background-color: #4C566A;
+}
+
+/* Ensure arrows are visible (using standard characters if images missing) */
+/* Or rely on default painting. By adding border and padding, we make them more 'button-like' */
+
 /* Toolbar */
 QToolBar {
     background-color: #3B4252;
