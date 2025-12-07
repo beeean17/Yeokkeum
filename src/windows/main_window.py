@@ -359,6 +359,8 @@ class MainWindow(QMainWindow):
         self.tab_widget.setTabsClosable(True)
         self.tab_widget.setMovable(True)
         self.tab_widget.setDocumentMode(True)
+        self.tab_widget.setUsesScrollButtons(True)  # Enable scrolling arrows
+        self.tab_widget.tabBar().setElideMode(Qt.TextElideMode.ElideRight)  # Prevent text from disappearing
 
         # Connect tab signals
         self.tab_widget.currentChanged.connect(self.on_tab_changed)

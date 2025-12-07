@@ -1987,57 +1987,6 @@ svg tspan {
             error_msg = "pdfplumber가 설치되지 않았습니다.\n\npip install pdfplumber"
             logger.error(error_msg)
             return False, "", error_msg
-        except Exception as e:
-            error_msg = f"PDF to Markdown conversion failed: {str(e)}"
-            logger.error(error_msg)
-            return False, "", error_msg
-
-    def markdown_to_docx(self, markdown_content: str, output_path: str) -> Tuple[bool, str]:
-        """
-        Convert Markdown to DOCX (requires python-docx)
-
-        Args:
-            markdown_content: Markdown text
-            output_path: Path to save DOCX
-
-        Returns:
-            Tuple of (success, error_message)
-        """
-        try:
-            # Lazy import
-            from docx import Document
-
-            doc = Document()
-
-            # Basic conversion (can be enhanced)
-            lines = markdown_content.split('\n')
-
-            for line in lines:
-                line = line.strip()
-
-                if line.startswith('# '):
-                    doc.add_heading(line[2:], level=1)
-                elif line.startswith('## '):
-                    doc.add_heading(line[3:], level=2)
-                elif line.startswith('### '):
-                    doc.add_heading(line[4:], level=3)
-                elif line:
-                    doc.add_paragraph(line)
-
-            doc.save(output_path)
-            logger.info(f"DOCX created: {output_path}")
-
-            return True, ""
-
-        except ImportError as e:
-            error_msg = "python-docx is not installed"
-            logger.error(error_msg)
-            return False, error_msg
-        except Exception as e:
-            error_msg = f"DOCX conversion failed: {str(e)}"
-            logger.error(error_msg)
-            return False, error_msg
-
     def markdown_to_html(self, markdown_content: str, output_path: str,
                          title: str = "Document") -> Tuple[bool, str]:
         """
