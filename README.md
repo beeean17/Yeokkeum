@@ -207,16 +207,28 @@
 
 **가장 빠르고 간편한 방법입니다!**
 
-1. [GitHub Releases 페이지](https://github.com/beeean17/Saekim/releases) 방문
-2. 최신 버전의 `Saekim-v1.1.0-windows.exe` 다운로드
-3. 다운로드한 파일 실행
-4. Python 설치나 의존성 설치 불필요 - 바로 사용 가능!
+#### 최신 릴리스 다운로드
+
+1. **[GitHub Releases 페이지](https://github.com/beeean17/Saekim/releases) 방문**
+2. **최신 버전 다운로드**:
+   - **Windows**: `Saekim-v1.1.0-windows.exe`
+   - **macOS/Linux**: 현재 실행 파일 미제공 (→ 방법 2 참조)
+3. **다운로드한 파일 실행**
+4. **바로 사용 가능!** - Python 설치나 의존성 설치 불필요
+
+#### 릴리스 정보
+
+- **최신 버전**: [v1.1.0](https://github.com/beeean17/Saekim/releases/latest)
+- **릴리스 노트**: [변경 사항 확인](https://github.com/beeean17/Saekim/releases/latest)
+- **이전 버전**: [모든 릴리스 보기](https://github.com/beeean17/Saekim/releases)
+- **다운로드 통계**: ![GitHub release downloads](https://img.shields.io/github/downloads/beeean17/Saekim/total)
 
 **장점**:
 - ✅ Python 설치 불필요
 - ✅ 의존성 관리 불필요
 - ✅ 클릭 한 번으로 실행
 - ✅ 초보자 친화적
+- ✅ 자동 업데이트 알림 (예정)
 
 **단점**:
 - ❌ 코드 수정 불가능
