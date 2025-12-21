@@ -10,7 +10,7 @@ from PyQt6.QtCore import QObject, pyqtSlot, pyqtSignal, QSettings, Qt
 from PyQt6.QtWidgets import QFileDialog, QMessageBox, QApplication
 
 from backend.file_manager import FileManager
-from backend.converter import DocumentConverter
+# DocumentConverter is lazy loaded on first use to improve startup time
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -31,8 +31,17 @@ class BackendAPI(QObject):
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
-        self.converter = DocumentConverter()
+        self._converter = None  # Lazy loaded for faster startup
         logger.info("Backend API initialized")
+
+    @property
+    def converter(self):
+        """Lazy load DocumentConverter on first use"""
+        if self._converter is None:
+            from backend.converter import DocumentConverter
+            self._converter = DocumentConverter()
+            logger.info("DocumentConverter initialized (lazy load)")
+        return self._converter
 
     @property
     def tab_manager(self):
