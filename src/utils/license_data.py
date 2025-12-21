@@ -52,7 +52,7 @@ of this license document, but changing it is not allowed.
 
 PROJECT_INFO = {
     "name": "Saekim (새김)",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "description": "Code and diagram focused local Markdown Editor",
     "copyright": "Copyright © 2025 Saekim Team",
     "license": "AGPL-3.0",
@@ -119,6 +119,10 @@ DEPENDENCIES = [
     },
     {
         "name": "Mermaid.js",
+        "license": "MIT",
+        "description": "Diagramming and charting tool",
+        "copyright": "Copyright (c) Knut Sveidqvist",
+        "url": "https://mermaid.js.org/",
         "license_text": LICENSE_MIT
     },
      {

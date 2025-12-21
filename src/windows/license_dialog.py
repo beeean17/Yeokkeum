@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QDesktopServices, QFont
 
 from utils.design_manager import DesignManager
-from utils.license_data import PROJECT_INFO, DEPENDENCIES, LICENSE_GPL_3
+from utils.license_data import PROJECT_INFO, DEPENDENCIES, LICENSE_AGPL_3
 
 class LicenseDialog(QDialog):
     def __init__(self, parent=None):
@@ -105,7 +105,7 @@ class LicenseDialog(QDialog):
             <p><a href="{PROJECT_INFO['source_url']}">{PROJECT_INFO['source_url']}</a></p>
             <hr>
             <h3>License Text:</h3>
-            <pre>{LICENSE_GPL_3}</pre>
+            <pre>{LICENSE_AGPL_3}</pre>
             """
         else:
             # Show Dependency License
