@@ -11,6 +11,12 @@ QWidget {
     font-size: 14px;
 }
 
+/* Remove focus border from all buttons */
+QPushButton:focus {
+    border: none;
+    outline: none;
+}
+
 /* Dock Widget */
 QDockWidget {
     titlebar-close-icon: url(:/icons/close.png);
@@ -238,6 +244,12 @@ QPushButton#TitleBarButton, QPushButton#TitleBarCloseButton {
     background-color: transparent;
     border: none;
     border-radius: 4px;
+    outline: none;
+}
+
+QPushButton#TitleBarButton:focus, QPushButton#TitleBarCloseButton:focus {
+    border: none;
+    outline: none;
 }
 
 QPushButton#TitleBarButton:hover {

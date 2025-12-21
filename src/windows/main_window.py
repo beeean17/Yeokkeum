@@ -32,6 +32,24 @@ from utils.design_manager import DesignManager
 from .title_bar import TitleBar
 from .settings_dialog import SettingsDialog
 
+# Lazy imports for update feature
+from PyQt6.QtCore import QThread, pyqtSignal, QTimer
+
+
+class UpdateCheckThread(QThread):
+    """Background thread to check for updates without blocking UI"""
+    update_available = pyqtSignal(object)  # UpdateInfo or None
+    
+    def run(self):
+        try:
+            from utils.update_manager import UpdateManager
+            manager = UpdateManager()
+            update_info = manager.check_for_updates()
+            self.update_available.emit(update_info)
+        except Exception as e:
+            print(f"Update check failed: {e}")
+            self.update_available.emit(None)
+
 
 class MainWindow(QMainWindow):
     """Main application window with tab interface"""
@@ -85,6 +103,33 @@ class MainWindow(QMainWindow):
         self.apply_theme(self.theme_manager.current_theme)
         
         self.restore_session()
+        
+        # Update check thread (initialized in showEvent)
+        self.update_check_thread = None
+        self._update_check_done = False
+
+    def showEvent(self, event):
+        """Handle window show - start update check after delay"""
+        super().showEvent(event)
+        
+        # Only check once per session
+        if not self._update_check_done:
+            self._update_check_done = True
+            # Delay update check by 2 seconds to not slow down startup
+            QTimer.singleShot(2000, self._start_update_check)
+    
+    def _start_update_check(self):
+        """Start background update check"""
+        self.update_check_thread = UpdateCheckThread()
+        self.update_check_thread.update_available.connect(self.on_update_available)
+        self.update_check_thread.start()
+    
+    def on_update_available(self, update_info):
+        """Handle update check result"""
+        if update_info:
+            from .update_dialog import UpdateDialog
+            dialog = UpdateDialog(update_info, parent=self)
+            dialog.exec()
 
     def changeEvent(self, event):
         """Handle window state changes to adjust margins"""
