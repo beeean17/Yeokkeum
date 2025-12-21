@@ -3,7 +3,6 @@ File Manager Module
 Stateless utility class for file I/O operations on markdown files
 """
 
-import json
 import re
 import shutil
 import sys

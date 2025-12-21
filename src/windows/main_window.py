@@ -292,7 +292,6 @@ class MainWindow(QMainWindow):
             for webview in self.webview_cache.values():
                 self.update_webview_theme(webview, theme_data)
                 # Also update icons in webview
-                import json
                 icons_json = json.dumps(DesignManager.get_web_icons(icon_color))
                 webview.page().runJavaScript(f"if(window.updateIcons) window.updateIcons({icons_json});")
 
@@ -415,56 +414,6 @@ class MainWindow(QMainWindow):
             print(f"Error: Welcome HTML not found at {welcome_html_path}")
             
         return webview
-        card_widget.setFixedWidth(300)
-        card_layout = QVBoxLayout(card_widget)
-        card_layout.setSpacing(30)
-        card_layout.setContentsMargins(40, 50, 40, 50)
-
-        # Message only - Removed as per user request
-        # message_label = QLabel("파일을 왼쪽의 File explorer나 아래의 버튼으로 열어서 시작하세요")
-        # ...
-
-        # Buttons container
-        buttons_layout = QVBoxLayout()
-        buttons_layout.setSpacing(12)
-
-        # Open Folder button
-        folder_icon, folder_text = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FOLDER)
-        self.welcome_btn_open_folder = QPushButton("폴더 열기")
-        if folder_icon:
-            self.welcome_btn_open_folder.setIcon(folder_icon)
-        self.welcome_btn_open_folder.setObjectName("WelcomeButtonPrimary")
-        self.welcome_btn_open_folder.setMinimumHeight(50)
-        self.welcome_btn_open_folder.setCursor(Qt.CursorShape.PointingHandCursor)
-        buttons_layout.addWidget(self.welcome_btn_open_folder)
-
-        # Open File button
-        file_icon, file_text = DesignManager.get_icon_data(DesignManager.Icons.OPEN_FILE)
-        self.welcome_btn_open_file = QPushButton("파일 열기")
-        if file_icon:
-            self.welcome_btn_open_file.setIcon(file_icon)
-        self.welcome_btn_open_file.setObjectName("WelcomeButtonPrimary")
-        self.welcome_btn_open_file.setMinimumHeight(50)
-        self.welcome_btn_open_file.setCursor(Qt.CursorShape.PointingHandCursor)
-        buttons_layout.addWidget(self.welcome_btn_open_file)
-
-        # New File button
-        new_icon, new_text = DesignManager.get_icon_data(DesignManager.Icons.NEW_FILE)
-        self.welcome_btn_new_file = QPushButton("새 파일")
-        if new_icon:
-            self.welcome_btn_new_file.setIcon(new_icon)
-        self.welcome_btn_new_file.setObjectName("WelcomeButtonSecondary")
-        self.welcome_btn_new_file.setMinimumHeight(50)
-        self.welcome_btn_new_file.setCursor(Qt.CursorShape.PointingHandCursor)
-        buttons_layout.addWidget(self.welcome_btn_new_file)
-
-        card_layout.addLayout(buttons_layout)
-
-        # Add card to main layout
-        main_layout.addWidget(card_widget, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        # Styling will be applied dynamically based on theme
-        return widget
 
     def close_current_tab(self):
         """Close the currently active tab"""
@@ -539,7 +488,6 @@ class MainWindow(QMainWindow):
             self.update_webview_theme(webview, self.theme_manager.get_current_theme_data())
 
             # Inject icons
-            import json
             # Determine icon color
             theme_data = self.theme_manager.get_current_theme_data()
             icon_color = "#D0D0D0" if theme_data.get('is_dark', True) else "#555555"
@@ -772,8 +720,6 @@ class MainWindow(QMainWindow):
         tab = self.tab_manager.get_tab(tab_id)
         if tab:
             title = tab.get_display_name()
-            if tab.is_modified:
-                title = f"*{title}"
             if tab.is_modified:
                 title = f"*{title}"
             self.setWindowTitle(f"{title} - Saekim")

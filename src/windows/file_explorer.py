@@ -52,8 +52,6 @@ class FileExplorer(QDockWidget):
         # 1. File Actions Row - Removed (Moved to Title Bar)
         
         # 2. Path Label
-
-        # 2. Path Label
         self.path_label = QLabel()
         self.path_label.setFont(DesignManager.get_font("small"))
         self.path_label.setWordWrap(True)

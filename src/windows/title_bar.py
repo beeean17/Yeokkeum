@@ -28,8 +28,6 @@ class TitleBar(QFrame):
         super().__init__(parent)
         self.main_window = parent
         self.setFixedHeight(32) # Compact title bar height
-        self.main_window = parent
-        self.setFixedHeight(32) # Compact title bar height
         self.setObjectName("TitleBar")
         self.current_icon_color = "#D0D0D0" # Default color
 

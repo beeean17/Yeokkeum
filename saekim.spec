@@ -9,7 +9,7 @@ a = Analysis(
     datas=[
         ('src/ui', 'ui'),
         ('src/resources', 'resources'),
-        ('C:/Users/yoons/AppData/Local/ms-playwright/chromium-1194', 'ms-playwright/chromium-1194'),
+        ('C:/Users/yoons/AppData/Local/ms-playwright/chromium-1200', 'ms-playwright/chromium-1200'),
     ],
     hiddenimports=['PyQt6.QtWebEngine', 'PyQt6.QtWebEngineCore', 'PyQt6.QtWebEngineWidgets'],
     hookspath=[],
