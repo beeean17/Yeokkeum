@@ -4,7 +4,7 @@
 
 #define MyAppName "새김"
 #define MyAppEnglishName "Saekim"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "윤성빈"
 #define MyAppURL "https://github.com/beeean17/Saekim"
 #define MyAppExeName "Saekim.exe"
@@ -87,7 +87,7 @@ Source: "dist\Saekim.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 ; 라이선스 파일
 Source: "Licenses\LICENSE"; DestDir: "{app}\Licenses"; Flags: ignoreversion
-Source: "Licenses\LICENSES.md"; DestDir: "{app}\Licenses"; Flags: ignoreversion; Tasks:
+Source: "Licenses\LICENSES.md"; DestDir: "{app}\Licenses"; Flags: ignoreversion
 
 ; README
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion isreadme

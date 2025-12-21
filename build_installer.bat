@@ -52,7 +52,7 @@ echo  빌드 완료!
 echo ========================================
 echo.
 echo 설치 프로그램 위치:
-echo   dist\installer\Saekim-Setup-v1.1.0.exe
+echo   dist\installer\Saekim-Setup-v1.2.0.exe
 echo.
 echo 파일 크기:
 for %%A in (dist\installer\Saekim-Setup-v*.exe) do echo   %%~zA bytes
