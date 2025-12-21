@@ -45,10 +45,12 @@ class SettingsDialog(QDialog):
         about_layout = QVBoxLayout()
         
         btn_license = QPushButton("라이선스 및 오픈소스 정보 (License Info)")
+        btn_license.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         btn_license.clicked.connect(self.open_license_dialog)
         about_layout.addWidget(btn_license)
         
         btn_check_update = QPushButton("업데이트 확인 (Check for Updates)")
+        btn_check_update.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         btn_check_update.clicked.connect(self.check_for_updates)
         about_layout.addWidget(btn_check_update)
         
@@ -62,6 +64,7 @@ class SettingsDialog(QDialog):
         btn_layout.addStretch()
         
         self.btn_close = QPushButton("Close")
+        self.btn_close.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btn_close.clicked.connect(self.accept)
         btn_layout.addWidget(self.btn_close)
         
