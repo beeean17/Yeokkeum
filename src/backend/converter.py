@@ -37,29 +37,6 @@ class DocumentConverter:
         self.temp_dir = Path(tempfile.gettempdir()) / 'saekim_temp'
         self.temp_dir.mkdir(exist_ok=True)
 
-    def markdown_to_pdf(self, markdown_content: str, output_path: str,
-                        title: str = "Document") -> Tuple[bool, str]:
-        """
-        Convert Markdown to PDF using Playwright
-
-        Args:
-            markdown_content: Markdown text
-            output_path: Path to save PDF
-            title: Document title
-
-        Returns:
-            Tuple of (success, error_message)
-        """
-        try:
-            # Convert markdown to HTML first
-            html_content = self._markdown_to_html(markdown_content, title)
-
-            # Use Playwright to generate PDF
-            return self._generate_pdf_with_playwright(html_content, output_path)
-
-        except Exception as e:
-            logger.error(f"Error initializing converter: {e}")
-
     def check_playwright_browser(self) -> bool:
         """Check if Playwright browsers are installed"""
         try:
