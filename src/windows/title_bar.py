@@ -18,6 +18,7 @@ class TitleBar(QFrame):
     # Signals
     toggle_sidebar = pyqtSignal()
     settings_requested = pyqtSignal()
+    refresh_requested = pyqtSignal()
     new_file_requested = pyqtSignal()
     open_folder_requested = pyqtSignal()
     import_md_requested = pyqtSignal()
@@ -59,6 +60,18 @@ class TitleBar(QFrame):
         self.btn_settings.clicked.connect(self.settings_requested.emit)
         self.btn_settings.setObjectName("TitleBarButton")
         layout.addWidget(self.btn_settings)
+
+        # Refresh Button
+        icon, text = DesignManager.get_icon_data(DesignManager.Icons.REFRESH)
+        self.btn_refresh = QPushButton(text)
+        if icon:
+            self.btn_refresh.setIcon(icon)
+        self.btn_refresh.setFixedSize(26, 26)
+        self.btn_refresh.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_refresh.setToolTip("새로고침 (F5)")
+        self.btn_refresh.clicked.connect(self.refresh_requested.emit)
+        self.btn_refresh.setObjectName("TitleBarButton")
+        layout.addWidget(self.btn_refresh)
 
         # --- File Operations ---
         # New File Button

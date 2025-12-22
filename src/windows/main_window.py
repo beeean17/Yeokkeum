@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QStackedWidget, QWidget,
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebEngineCore import QWebEngineSettings
 from PyQt6.QtWebChannel import QWebChannel
-from PyQt6.QtCore import QUrl, Qt, QFile, QTextStream, QEvent
+from PyQt6.QtCore import QUrl, Qt, QFile, QTextStream, QEvent, QFileSystemWatcher
 from PyQt6.QtGui import QCloseEvent, QShortcut, QKeySequence, QFont
 
 from .menu_bar import MenuBar
@@ -89,6 +89,10 @@ class MainWindow(QMainWindow):
 
         # Webview cache (LRU cache of webviews)
         self.webview_cache: Dict[str, QWebEngineView] = {}  # tab_id -> webview
+
+        # File system watcher for auto-refresh
+        self.file_watcher = QFileSystemWatcher()
+        self.file_watcher.fileChanged.connect(self._on_file_changed_external)
 
         # Shared QWebChannel for all tabs
         self.channel = QWebChannel()
@@ -438,6 +442,10 @@ class MainWindow(QMainWindow):
         self.shortcut_close_tab = QShortcut(QKeySequence("Ctrl+W"), self)
         self.shortcut_close_tab.activated.connect(self.close_current_tab)
 
+        # F5 to refresh current file
+        self.shortcut_refresh = QShortcut(QKeySequence("F5"), self)
+        self.shortcut_refresh.activated.connect(self.reload_current_file)
+
         print("[OK] Tab interface and file explorer initialized")
 
     def _create_welcome_widget(self):
@@ -597,6 +605,7 @@ class MainWindow(QMainWindow):
         # Connect title bar signals
         self.title_bar.toggle_sidebar.connect(self.toggle_file_explorer)
         self.title_bar.settings_requested.connect(self.show_settings)
+        self.title_bar.refresh_requested.connect(self.reload_current_file)
 
         # Connect TitleBar signals for file operations
         self.title_bar.new_file_requested.connect(self.backend.new_file)
@@ -886,6 +895,12 @@ class MainWindow(QMainWindow):
         # Create new tab with file
         self.create_new_tab(file_path, content)
 
+        # Add file to watcher for auto-refresh
+        abs_path = str(Path(file_path).resolve())
+        if abs_path not in self.file_watcher.files():
+            self.file_watcher.addPath(abs_path)
+            print(f"[OK] File watcher: monitoring {abs_path}")
+
         # Update file explorer root to file's directory
         self.file_explorer.set_root_path(str(Path(file_path).parent))
 
@@ -1015,6 +1030,100 @@ class MainWindow(QMainWindow):
 
         # Accept the close event
         event.accept()
+
+    # ==================== Manual Refresh ====================
+
+    def reload_current_file(self):
+        """Reload current file from disk (F5)"""
+        # Get active tab
+        tab_info = self.tab_manager.get_active_tab()
+        if not tab_info:
+            print("[WARN] No active tab to refresh")
+            return
+        
+        if not tab_info.file_path:
+            print("[WARN] Current tab has no file to refresh")
+            return
+        
+        file_path = str(tab_info.file_path)
+        
+        # Re-read file content
+        success, new_content, error = FileManager.open_file(file_path)
+        if not success:
+            print(f"[ERROR] Failed to reload file: {error}")
+            return
+        
+        tab_id = tab_info.tab_id
+        
+        # Update tab content
+        self.tab_manager.update_tab_content(tab_id, new_content)
+        self.tab_manager.update_tab_modified(tab_id, False)
+        
+        # Update webview if it exists in cache
+        if tab_id in self.webview_cache:
+            webview = self.webview_cache[tab_id]
+            # Update editor content via JS
+            escaped_content = new_content.replace('\\', '\\\\').replace('`', '\\`').replace('$', '\\$')
+            js_code = f"""
+                console.log('[DEBUG] EditorModule:', typeof window.EditorModule);
+                if (typeof window.EditorModule !== 'undefined' && window.EditorModule.setContent) {{
+                    window.EditorModule.setContent(`{escaped_content}`);
+                    console.log('[OK] File refreshed via EditorModule');
+                }} else {{
+                    // Fallback: directly set textarea value
+                    const editor = document.getElementById('editor');
+                    if (editor) {{
+                        editor.value = `{escaped_content}`;
+                        editor.dispatchEvent(new Event('input'));
+                        console.log('[OK] File refreshed via textarea');
+                    }} else {{
+                        console.error('[ERROR] Neither EditorModule nor editor element found');
+                    }}
+                }}
+            """
+            webview.page().runJavaScript(js_code)
+            print(f"[OK] File refreshed: {file_path}")
+        else:
+            print(f"[WARN] Tab {tab_id[:8]} not in webview cache")
+
+    def _on_file_changed_external(self, file_path: str):
+        """Handle external file modification - auto-reload content"""
+        print(f"[OK] File changed externally: {file_path}")
+        
+        # Find the tab with this file
+        tab_id = self.tab_manager.find_tab_by_path(file_path)
+        if not tab_id:
+            print(f"[WARN] No tab found for changed file: {file_path}")
+            return
+        
+        # Re-read file content
+        success, new_content, error = FileManager.open_file(file_path)
+        if not success:
+            print(f"[ERROR] Failed to reload file: {error}")
+            return
+        
+        # Update tab content
+        self.tab_manager.update_tab_content(tab_id, new_content)
+        self.tab_manager.update_tab_modified(tab_id, False)
+        self.tab_manager.update_tab_file_path(tab_id, file_path)
+        
+        # Update webview if it exists in cache
+        if tab_id in self.webview_cache:
+            webview = self.webview_cache[tab_id]
+            # Update editor content via JS
+            escaped_content = new_content.replace('\\', '\\\\').replace('`', '\\`').replace('$', '\\$')
+            js_code = f"""
+                if (window.EditorModule && window.EditorModule.setContent) {{
+                    window.EditorModule.setContent(`{escaped_content}`);
+                    console.log('[OK] Auto-refresh: content updated');
+                }}
+            """
+            webview.page().runJavaScript(js_code)
+            print(f"[OK] Auto-refresh: tab {tab_id[:8]} content reloaded")
+        
+        # Re-add to watcher (some systems remove path after change)
+        if file_path not in self.file_watcher.files():
+            self.file_watcher.addPath(file_path)
 
     def _handle_dropped_pdf(self, pdf_path: str):
         """Handle dropped PDF file - convert to markdown and open"""
