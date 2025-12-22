@@ -157,8 +157,39 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'file_explorer'):
             max_width = self.width() // 3
             self.file_explorer.setMaximumWidth(max_width)
+        
+        # Debounced webview repaint to fix black screen issue
+        if not hasattr(self, '_resize_timer'):
+            from PyQt6.QtCore import QTimer
+            self._resize_timer = QTimer()
+            self._resize_timer.setSingleShot(True)
+            self._resize_timer.timeout.connect(self._force_webview_repaint)
+        
+        # Reset timer on each resize (debounce)
+        self._resize_timer.stop()
+        self._resize_timer.start(150)  # 150ms delay
             
         super().resizeEvent(event)
+    
+    def _force_webview_repaint(self):
+        """Force webview to repaint by toggling a CSS property"""
+        if not hasattr(self, 'tab_manager') or not hasattr(self, 'webview_cache'):
+            return
+            
+        active_tab = self.tab_manager.get_active_tab()
+        if not active_tab or active_tab.tab_id not in self.webview_cache:
+            return
+            
+        webview = self.webview_cache[active_tab.tab_id]
+        
+        # Force repaint via JS - toggle opacity to trigger reflow
+        js_code = """
+            document.body.style.opacity = '0.999';
+            setTimeout(() => { document.body.style.opacity = '1'; }, 10);
+        """
+        webview.page().runJavaScript(js_code)
+        webview.update()
+        webview.repaint()
 
     def _apply_native_window_styles(self):
         """Apply Windows styles to enable Aero Snap while keeping frameless look"""
