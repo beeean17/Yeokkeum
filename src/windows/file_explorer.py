@@ -18,6 +18,10 @@ class FileExplorer(QDockWidget):
     # Signal emitted when a file is double-clicked
     file_double_clicked = pyqtSignal(str)  # file_path
     
+    # Signals for drag & drop
+    file_dropped = pyqtSignal(str)  # file_path for .md/.txt files
+    pdf_dropped = pyqtSignal(str)   # file_path for .pdf files
+    
     # New signals for UI actions
     settings_requested = pyqtSignal()
 
@@ -141,6 +145,9 @@ class FileExplorer(QDockWidget):
 
         # Set main widget
         self.setWidget(main_widget)
+        
+        # Enable drag & drop on file explorer
+        self.setAcceptDrops(True)
 
         # Set default root to user's home directory
         self.set_root_path(str(Path.home()))
@@ -321,3 +328,78 @@ class FileExplorer(QDockWidget):
         current_root = self.model.rootPath()
         return bool(current_root and current_root != "")
 
+    # ==================== Drag & Drop Handlers ====================
+    
+    def _create_drag_overlay(self):
+        """Create overlay for drag visual feedback (same style as MainWindow)"""
+        if hasattr(self, '_drag_overlay') and self._drag_overlay:
+            return self._drag_overlay
+        
+        from PyQt6.QtWidgets import QFrame
+        self._drag_overlay = QFrame(self)
+        self._drag_overlay.setObjectName("DragOverlay")
+        self._drag_overlay.setStyleSheet("""
+            QFrame#DragOverlay {
+                background-color: rgba(136, 192, 208, 0.15);
+                border: 4px dashed #88C0D0;
+                border-radius: 0px;
+            }
+        """)
+        self._drag_overlay.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self._drag_overlay.hide()
+        return self._drag_overlay
+    
+    def _show_drag_overlay(self):
+        """Show drag overlay over file explorer"""
+        overlay = self._create_drag_overlay()
+        # Cover entire dock widget
+        overlay.setGeometry(0, 0, self.width(), self.height())
+        overlay.raise_()
+        overlay.show()
+    
+    def _hide_drag_overlay(self):
+        """Hide drag overlay"""
+        if hasattr(self, '_drag_overlay') and self._drag_overlay:
+            self._drag_overlay.hide()
+    
+    def dragEnterEvent(self, event):
+        """Accept drag events for supported file types"""
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                file_path = url.toLocalFile().lower()
+                if file_path.endswith(('.md', '.markdown', '.txt', '.pdf')):
+                    event.acceptProposedAction()
+                    self._show_drag_overlay()
+                    return
+        event.ignore()
+    
+    def dragMoveEvent(self, event):
+        """Keep accepting while over widget"""
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+    
+    def dragLeaveEvent(self, event):
+        """Handle drag leave"""
+        self._hide_drag_overlay()
+        event.accept()
+    
+    def dropEvent(self, event):
+        """Handle file drop - emit appropriate signal"""
+        self._hide_drag_overlay()
+        
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                file_path = url.toLocalFile()
+                lower_path = file_path.lower()
+                
+                if lower_path.endswith(('.md', '.markdown', '.txt')):
+                    self.file_dropped.emit(file_path)
+                    print(f"[OK] File Explorer: dropped {file_path}")
+                    
+                elif lower_path.endswith('.pdf'):
+                    self.pdf_dropped.emit(file_path)
+                    print(f"[OK] File Explorer: dropped PDF {file_path}")
+                    
+        event.acceptProposedAction()

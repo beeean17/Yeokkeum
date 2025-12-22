@@ -69,6 +69,9 @@ class MainWindow(QMainWindow):
         # Apply Windows styles for Aero Snap
         self._apply_native_window_styles()
 
+        # Enable drag visual feedback on entire window
+        self.setAcceptDrops(True)
+
 
 
 
@@ -396,6 +399,8 @@ class MainWindow(QMainWindow):
         # Create file explorer first (needed for styling)
         self.file_explorer = FileExplorer(self)
         self.file_explorer.file_double_clicked.connect(self.open_file_in_new_tab)
+        self.file_explorer.file_dropped.connect(self.open_file_in_new_tab)
+        self.file_explorer.pdf_dropped.connect(self._handle_dropped_pdf)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.file_explorer)
 
         # Create tab widget
@@ -1010,3 +1015,149 @@ class MainWindow(QMainWindow):
 
         # Accept the close event
         event.accept()
+
+    def _handle_dropped_pdf(self, pdf_path: str):
+        """Handle dropped PDF file - convert to markdown and open"""
+        from PyQt6.QtWidgets import QFileDialog, QMessageBox
+        from pathlib import Path
+        
+        # Suggest output filename
+        pdf_name = Path(pdf_path).stem
+        suggested_path = str(Path(pdf_path).parent / f"{pdf_name}.md")
+        
+        # Ask where to save converted file
+        save_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "PDF 변환 결과 저장 위치",
+            suggested_path,
+            "마크다운 파일 (*.md)"
+        )
+        
+        if not save_path:
+            return  # User cancelled
+        
+        if not save_path.endswith('.md'):
+            save_path += '.md'
+        
+        try:
+            # Convert PDF to markdown
+            success, content, error = self.backend_api.converter.pdf_to_markdown(
+                pdf_path,
+                output_dir=str(Path(save_path).parent)
+            )
+            
+            if success:
+                # Save converted content
+                with open(save_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                
+                # Open in new tab
+                self.open_file_in_new_tab(save_path)
+                print(f"[OK] Drag & drop PDF: converted {pdf_path} -> {save_path}")
+            else:
+                QMessageBox.warning(self, "PDF 변환 실패", f"PDF 변환 중 오류 발생:\n{error}")
+                
+        except Exception as e:
+            QMessageBox.warning(self, "오류", f"PDF 처리 중 오류 발생:\n{str(e)}")
+
+    # ==================== Drag Visual Feedback ====================
+    
+    def _create_drop_overlay(self):
+        """Create the drop overlay widget (lazy initialization)"""
+        if hasattr(self, '_drop_overlay') and self._drop_overlay:
+            return self._drop_overlay
+        
+        from PyQt6.QtWidgets import QFrame
+        
+        self._drop_overlay = QFrame(self)
+        self._drop_overlay.setObjectName("DropOverlay")
+        self._drop_overlay.setStyleSheet("""
+            QFrame#DropOverlay {
+                background-color: rgba(136, 192, 208, 0.15);
+                border: 4px dashed #88C0D0;
+                border-radius: 0px;
+            }
+        """)
+        
+        # Create inner layout with icon and text
+        from PyQt6.QtWidgets import QVBoxLayout
+        overlay_layout = QVBoxLayout(self._drop_overlay)
+        overlay_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        #icon_label = QLabel("📂")
+        #icon_label.setStyleSheet("font-size: 48px; background: transparent; border: none;")
+        #icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #overlay_layout.addWidget(icon_label)
+        
+        #text_label = QLabel("파일 탐색기에 놓으세요")
+        #text_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #88C0D0; background: transparent; border: none;")
+        #text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #overlay_layout.addWidget(text_label)
+        
+        #sub_text = QLabel(".md  .txt  .pdf")
+        #sub_text.setStyleSheet("font-size: 12px; color: #88C0D0; background: transparent; border: none;")
+        #sub_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #overlay_layout.addWidget(sub_text)
+        
+        # Pass through mouse events
+        self._drop_overlay.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self._drop_overlay.hide()
+        return self._drop_overlay
+    
+    def _show_drop_overlay(self):
+        """Show the drop overlay over file explorer to guide user"""
+        overlay = self._create_drop_overlay()
+        
+        # Position overlay over file explorer area
+        if hasattr(self, 'file_explorer') and self.file_explorer.isVisible():
+            # Get file explorer position relative to main window
+            fe_pos = self.file_explorer.mapTo(self, self.file_explorer.rect().topLeft())
+            fe_size = self.file_explorer.size()
+            margin = 0
+            overlay.setGeometry(
+                fe_pos.x() + margin,
+                fe_pos.y() + margin,
+                fe_size.width() - (margin * 2),
+                fe_size.height() - (margin * 2)
+            )
+        else:
+            # Fallback if file explorer not visible
+            overlay.setGeometry(8, self._title_bar_height + 8, 200, 300)
+        
+        overlay.raise_()
+        overlay.show()
+    
+    def _hide_drop_overlay(self):
+        """Hide the drop overlay"""
+        if hasattr(self, '_drop_overlay') and self._drop_overlay:
+            self._drop_overlay.hide()
+
+    def dragEnterEvent(self, event):
+        """Handle drag enter - show visual feedback"""
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                file_path = url.toLocalFile().lower()
+                if file_path.endswith(('.md', '.markdown', '.txt', '.pdf')):
+                    event.acceptProposedAction()
+                    self._show_drop_overlay()
+                    return
+        event.ignore()
+    
+    def dragMoveEvent(self, event):
+        """Handle drag move - keep accepting"""
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+    
+    def dragLeaveEvent(self, event):
+        """Handle drag leave - hide overlay"""
+        self._hide_drop_overlay()
+        event.accept()
+
+    def dropEvent(self, event):
+        """Handle file drop - ignore to let FileExplorer handle it"""
+        self._hide_drop_overlay()
+        # Ignore the drop so it doesn't get processed here
+        # User must drop on file explorer for it to work
+        event.ignore()
