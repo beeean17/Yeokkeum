@@ -28,9 +28,21 @@ class ToolBar(QToolBar):
         explorer_action.triggered.connect(self.toggle_file_explorer)
         self.addAction(explorer_action)
 
+        # Refresh current file
+        refresh_action = QAction("새로고침", self)
+        refresh_action.setShortcut("F5")
+        refresh_action.setStatusTip("현재 파일 다시 불러오기")
+        refresh_action.triggered.connect(self.refresh_current_file)
+        self.addAction(refresh_action)
+
     def toggle_file_explorer(self):
         """Toggle file explorer visibility"""
         if self.parent.file_explorer.isVisible():
             self.parent.file_explorer.hide()
         else:
             self.parent.file_explorer.show()
+
+    def refresh_current_file(self):
+        """Reload current file from disk"""
+        if hasattr(self.parent, 'reload_current_file'):
+            self.parent.reload_current_file()

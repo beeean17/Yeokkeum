@@ -34,6 +34,7 @@ class DesignManager:
         FORWARD = '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M 6,4 L 10,8 L 6,12" stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>'
         UP = '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M 4,10 L 8,6 L 12,10" stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>'
         SETTINGS = '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="3" stroke="{color}" stroke-width="1.5" fill="none"/><path d="M 8,2 L 8,3 M 8,13 L 8,14 M 14,8 L 13,8 M 3,8 L 2,8 M 12.2,3.8 L 11.5,4.5 M 4.5,11.5 L 3.8,12.2 M 12.2,12.2 L 11.5,11.5 M 4.5,4.5 L 3.8,3.8" stroke="{color}" stroke-width="1.5" stroke-linecap="round"/></svg>'
+        REFRESH = '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M 3,8 A 5,5 0 0 1 13,8 A 5,5 0 0 1 8,13" stroke="{color}" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M 11,5 L 13,8 L 10,8" stroke="{color}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 
         # Tab Bar
         # Minimalist Line Style
