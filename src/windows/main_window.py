@@ -480,12 +480,25 @@ class MainWindow(QMainWindow):
         # self.apply_tab_styling()  # Removed in favor of global QSS
 
         # Setup shortcuts
+        # Ctrl+N: New file
+        self.shortcut_new_file = QShortcut(QKeySequence("Ctrl+N"), self)
+        self.shortcut_new_file.activated.connect(self.backend.new_file)
+
+        # Ctrl+W: Close tab
         self.shortcut_close_tab = QShortcut(QKeySequence("Ctrl+W"), self)
         self.shortcut_close_tab.activated.connect(self.close_current_tab)
 
-        # F5 to refresh current file
+        # F5: Refresh current file
         self.shortcut_refresh = QShortcut(QKeySequence("F5"), self)
         self.shortcut_refresh.activated.connect(self.reload_current_file)
+
+        # F9: Toggle file explorer
+        self.shortcut_toggle_explorer = QShortcut(QKeySequence("F9"), self)
+        self.shortcut_toggle_explorer.activated.connect(self.toggle_file_explorer)
+
+        # Note: Ctrl+Shift+K (KaTeX helper) is handled in JavaScript (katex-helper.js)
+        # Note: Ctrl+Shift+D (Markdown helper) is handled in JavaScript (markdown-helper.js)
+        # Note: Ctrl+Shift+M (Mermaid helper) is handled in JavaScript (mermaid-helper.js)
 
         print("[OK] Tab interface and file explorer initialized")
 
