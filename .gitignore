@@ -30,9 +30,6 @@ dist/
 *.egg
 *.whl
 
-# PyInstaller
-*.spec
-
 # Build Artifacts
 *.exe
 *.msi
@@ -168,3 +165,4 @@ secrets.json
 # ========================================
 nul
 log.txt
+
