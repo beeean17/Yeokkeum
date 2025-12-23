@@ -66,6 +66,20 @@ def main():
     if app_icon:
         app.setWindowIcon(app_icon)
 
+    # Load Pretendard font
+    from PyQt6.QtGui import QFontDatabase
+    from backend.file_manager import FileManager
+    font_path = Path(FileManager.resource_path('resources/fonts/Pretendard-1.3.9/public/variable/PretendardVariable.ttf'))
+    if font_path.exists():
+        font_id = QFontDatabase.addApplicationFont(str(font_path))
+        if font_id != -1:
+            font_families = QFontDatabase.applicationFontFamilies(font_id)
+            logger.info(f"Pretendard font loaded: {font_families}")
+        else:
+            logger.warning("Failed to load Pretendard font")
+    else:
+        logger.warning(f"Pretendard font not found at {font_path}")
+
     # Create and show main window with empty content
     window = MainWindow(initial_file=None, initial_content="")
     window.show()

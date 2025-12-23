@@ -153,24 +153,34 @@ class MainWindow(QMainWindow):
 
     def resizeEvent(self, event):
         """Handle window resize events"""
+        # Show overlay during resize
+        self._show_resize_overlay()
+
         # Limit file explorer width to 1/3 of window width
         if hasattr(self, 'file_explorer'):
             max_width = self.width() // 3
             self.file_explorer.setMaximumWidth(max_width)
-        
+
         # Debounced webview repaint to fix black screen issue
         if not hasattr(self, '_resize_timer'):
             from PyQt6.QtCore import QTimer
             self._resize_timer = QTimer()
             self._resize_timer.setSingleShot(True)
-            self._resize_timer.timeout.connect(self._force_webview_repaint)
-        
+            self._resize_timer.timeout.connect(self._on_resize_finished)
+
         # Reset timer on each resize (debounce)
         self._resize_timer.stop()
         self._resize_timer.start(150)  # 150ms delay
-            
+
         super().resizeEvent(event)
-    
+
+    def _on_resize_finished(self):
+        """Called when resize is finished (after debounce delay)"""
+        # Hide overlay first
+        self._hide_resize_overlay()
+        # Then force repaint
+        self._force_webview_repaint()
+
     def _force_webview_repaint(self):
         """Force webview to repaint by toggling a CSS property"""
         if not hasattr(self, 'tab_manager') or not hasattr(self, 'webview_cache'):
@@ -1271,6 +1281,56 @@ class MainWindow(QMainWindow):
         """Hide the drop overlay"""
         if hasattr(self, '_drop_overlay') and self._drop_overlay:
             self._drop_overlay.hide()
+
+    def _create_resize_overlay(self):
+        """Create the resize overlay widget (lazy initialization)"""
+        if hasattr(self, '_resize_overlay') and self._resize_overlay:
+            return self._resize_overlay
+
+        from PyQt6.QtWidgets import QFrame, QVBoxLayout, QLabel
+
+        self._resize_overlay = QFrame(self)
+        self._resize_overlay.setObjectName("ResizeOverlay")
+        self._resize_overlay.setStyleSheet("""
+            QFrame#ResizeOverlay {
+                background-color: rgba(0, 0, 0, 0.3);
+                border: none;
+            }
+            QLabel {
+                color: #ECEFF4;
+                font-size: 16px;
+                font-family: "Pretendard";
+                background: transparent;
+                border: none;
+            }
+        """)
+
+        # Create layout with text
+        overlay_layout = QVBoxLayout(self._resize_overlay)
+        overlay_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        text_label = QLabel("크기 조정 중...")
+        text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        overlay_layout.addWidget(text_label)
+
+        # Pass through mouse events
+        self._resize_overlay.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self._resize_overlay.hide()
+        return self._resize_overlay
+
+    def _show_resize_overlay(self):
+        """Show the resize overlay over the entire window"""
+        overlay = self._create_resize_overlay()
+
+        # Cover the entire window
+        overlay.setGeometry(0, 0, self.width(), self.height())
+        overlay.raise_()
+        overlay.show()
+
+    def _hide_resize_overlay(self):
+        """Hide the resize overlay"""
+        if hasattr(self, '_resize_overlay') and self._resize_overlay:
+            self._resize_overlay.hide()
 
     def dragEnterEvent(self, event):
         """Handle drag enter - show visual feedback"""
