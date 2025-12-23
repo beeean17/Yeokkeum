@@ -120,6 +120,27 @@ These JavaScript libraries are loaded via CDN in the web-based editor interface:
 
 ---
 
+## Fonts
+
+### 12. Pretendard
+- **Version**: 1.3.9
+- **License**: SIL Open Font License 1.1 (OFL-1.1)
+- **Homepage**: https://cactus.tistory.com/306
+- **Repository**: https://github.com/orioncactus/pretendard
+- **Copyright**: © 2021 Kil Hyung-jin
+- **Usage**: Primary font family for UI and text rendering
+- **Font Files**: Variable font (PretendardVariable.ttf) bundled in `src/resources/fonts/`
+
+**License Summary:**
+- The font can be used, studied, modified and redistributed freely
+- Cannot be sold by itself, but can be bundled with software
+- Derivatives must remain under OFL-1.1 license
+- Reserved Font Name: "Pretendard"
+
+**Full License**: See `src/resources/fonts/Pretendard-1.3.9/LICENSE.txt`
+
+---
+
 ## License Compatibility
 
 This project is licensed under AGPL-3.0 due to PyMuPDF's license requirements. All dependencies are compatible:
@@ -131,6 +152,7 @@ This project is licensed under AGPL-3.0 due to PyMuPDF's license requirements. A
 | MIT | Compatible |
 | BSD-3-Clause | Compatible |
 | Apache-2.0 | Compatible |
+| OFL-1.1 | Compatible (Pretendard Font) |
 
 ---
 
@@ -160,6 +182,37 @@ are permitted provided that the following conditions are met...
 ### Apache License 2.0
 https://www.apache.org/licenses/LICENSE-2.0
 
+### SIL Open Font License 1.1
+```
+Copyright (c) 2021, Kil Hyung-jin (https://github.com/orioncactus/pretendard),
+with Reserved Font Name Pretendard.
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder.
+
+4) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license.
+```
+
+Full license text: https://scripts.sil.org/OFL
+
 ---
 
 ## Contact
@@ -169,4 +222,4 @@ https://www.apache.org/licenses/LICENSE-2.0
 
 ---
 
-**Last Updated**: December 22, 2025
+**Last Updated**: December 23, 2025
