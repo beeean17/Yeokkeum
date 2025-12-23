@@ -60,78 +60,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.1.0] - 2024-12-21
-
-### ✨ Added
-- **Auto-Update Feature**: GitHub Releases API 통합
-  - 백그라운드 업데이트 확인 (앱 시작 2초 후)
-  - 업데이트 알림 다이얼로그
-  - 다운로드 진행률 표시
-  - Inno Setup 설치 프로그램 자동 실행 (/SILENT 플래그)
-- **Drag & Drop File Opening**: 마크다운, 텍스트, PDF 파일 드래그 앤 드롭
-  - 드래그 시 시각적 오버레이 (청록색 점선 테두리)
-  - PDF 파일 자동 변환 및 열기
-
-### 🔧 Performance
-- **Code Refactoring**: 82줄의 중복/불필요 코드 제거
-  - `converter.py`, `main_window.py`, `title_bar.py` 등 6개 파일
-- **Loading Time Optimization**: 앱 시작 시간 26% 개선
-  - `backend.api` 로딩 시간: 89ms → 18ms (79% 개선)
-  - 총 시작 시간: 235ms → 175ms
-  - `DocumentConverter` lazy loading 구현
-
-### 📝 Documentation
-- **License Update**: AGPL-3.0로 변경 (PyMuPDF 요구사항)
-- **LICENSES.md**: 실제 종속성만 포함 (420줄 → 150줄)
-  - Python 의존성: PyQt6, Playwright, PyMuPDF, pdfplumber, Markdown
-  - JS 의존성 (CDN): Marked.js, DOMPurify, Highlight.js, Mermaid.js, KaTeX
-
-### 🛠️ Build & Distribution
-- **Inno Setup Configuration**: `installer.iss` 버전 1.1.0 업데이트
-  - 빈 Tasks 섹션 오류 수정
-  - LICENSE 파일 AGPL-3.0 반영
-
----
-
-## [1.0.0] - 2024-12-20
-
-### 🎉 Initial Release
-
-#### Core Features
-- **Real-time Markdown Editing**: Split view with live preview
-- **Code Highlighting**: Highlight.js 11.9.0 지원 (9개 언어)
-- **Diagram Rendering**: Mermaid.js 10.6.1 지원 (9종 다이어그램)
-- **Math Equations**: KaTeX 0.16.9 지원
-- **Multi-tab Editing**: 여러 파일 동시 편집
-- **Session Management**: 자동 세션 저장 및 복원
-- **File Explorer**: 사이드바 파일 탐색기
-- **Theme System**: 5개 테마 (Nord, Dark, Catppuccin, GitHub Primer, Paper)
-
-#### Document Conversion
-- **Markdown → PDF**: Playwright 기반 고품질 변환
-- **PDF → Markdown**: PyMuPDF 기반 텍스트 추출
-- **Table Extraction**: pdfplumber를 사용한 PDF 테이블 추출
-
-#### UI/UX
-- **Custom Title Bar**: Windows Aero Snap 지원
-- **Markdown Helper**: Ctrl+Shift+D 마크다운 문법 도우미
-- **Diagram Helper**: Ctrl+Shift+M 다이어그램 삽입 도우미
-- **Find & Replace**: Ctrl+F 찾기, Ctrl+H 바꾸기 (정규표현식 지원)
-
-#### Platform
-- **Windows Support**: PyInstaller + Inno Setup 빌드 시스템
-- **Python 3.10+**: PyQt6 6.6.0+ 기반
-- **Local-First**: 오프라인 작업, 프라이버시 보호
-
----
 
 ## Version Comparison
 
 | Version | Release Date | Key Features |
 |---------|--------------|--------------|
 | 1.2.0 | 2025-12-23 | Resize overlay, Pretendard font, ViewToggle styles, Refresh feature |
-| 1.1.0 | 2024-12-21 | Auto-update, Drag & drop, Performance optimization |
-| 1.0.0 | 2024-12-20 | Initial release with core features |
+
 
 ---
 
