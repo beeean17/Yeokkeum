@@ -210,3 +210,62 @@ QStatusBar {
     color: #FFFFFF;
     border-top: 1px solid #007ACC;
 }
+
+/* View Toggle Buttons - Connected Group */
+QWidget#ViewToggleContainer {
+    background-color: transparent;
+}
+
+QPushButton#ViewToggleButton {
+    background-color: #252526;
+    border: 1px solid #3E3E42;
+    border-radius: 0px;
+    color: #CCCCCC;
+    font-size: 12px;
+    font-family: "Pretendard";
+    padding: 4px 8px;
+}
+
+QPushButton#ViewToggleButton[position="left"] {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+QPushButton#ViewToggleButton[position="middle"] {
+    border-left: none;
+}
+
+QPushButton#ViewToggleButton[position="right"] {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-left: none;
+}
+
+QPushButton#ViewToggleButton:hover {
+    background-color: #2A2D2E;
+    color: #FFFFFF;
+}
+
+QPushButton#ViewToggleButton[active="true"] {
+    background-color: #007ACC;
+    border-color: #007ACC;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+QPushButton#ViewToggleButton[active="true"][position="middle"] {
+    border-left: 1px solid #007ACC;
+}
+
+QPushButton#ViewToggleButton[active="true"][position="right"] {
+    border-left: 1px solid #007ACC;
+}
+
+QPushButton#ViewToggleButton[active="true"]:hover {
+    background-color: #0098FF;
+    color: #FFFFFF;
+}
+
+QPushButton#ViewToggleButton:pressed {
+    background-color: #37373D;
+}
