@@ -1095,9 +1095,9 @@ const KatexHelperModule = {
             }
         });
 
-        // Keyboard shortcut (Ctrl/Cmd + K to open)
+        // Keyboard shortcut (Ctrl/Cmd + Shift + K to open)
         document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k' && e.shiftKey) {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'K' || e.key === 'k')) {
                 e.preventDefault();
                 this.toggle();
             }

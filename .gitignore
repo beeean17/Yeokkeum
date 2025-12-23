@@ -31,7 +31,20 @@ dist/
 *.whl
 
 # PyInstaller
-# *.spec
+*.spec
+
+# Build Artifacts
+*.exe
+*.msi
+*.app
+*.dmg
+*.deb
+*.rpm
+
+# Installer Output
+installer/
+output/
+releases/
 
 # Beta Build Files
 build.bat
@@ -86,6 +99,10 @@ data/images/*
 !data/images/.gitkeep
 tests/*
 
+# User Session Data
+.saekim/
+session.json
+
 # Exports (user-generated files)
 exports/
 output/
@@ -107,6 +124,15 @@ debug.log
 *.backup
 ~*
 .~lock.*
+
+# Font Archives (keep extracted fonts, ignore archives)
+src/resources/fonts/*.zip
+src/resources/fonts/*.tar.gz
+
+# Old/Backup Files
+*_OLD.*
+*_BACKUP.*
+private/README_OLD.md
 
 # ============ Testing ============
 
